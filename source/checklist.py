@@ -55,31 +55,42 @@ def apply_filter(*args):
     query = filter_var.get().lower()
 
     # Hide all first
+    visible_count = 0
     for row_frame in row_order:
         row_frame.pack_forget()
 
-    # Repack only if matches filter
+    # Repack only rows that match filter
     for row_frame in row_order:
         creo_data = row_frames[row_frame]
         if query in creo_data["name"].lower():
             row_frame.pack(fill="x", anchor="w", padx=5, pady=2)
+            visible_count += 1
 
     # Recalculate scrollable area
     update_scrollregion()
 
-    # Scroll to top
+    # Always scroll to top
     canvas.yview_moveto(0)
 
-    # Disable scrolling if content fits in canvas
-    if canvas.bbox("all"):  # make sure there's content
+    # Handle scrollbar visibility and scrolling
+    if visible_count == 0:
+        # No results: hide scrollbar and disable scrolling
+        scrollbar.pack_forget()
+        canvas.unbind_all("<MouseWheel>")
+        canvas.unbind_all("<Button-4>")
+        canvas.unbind_all("<Button-5>")
+    else:
+        # Show scrollbar only if content exceeds canvas height
         content_height = canvas.bbox("all")[3]
         if content_height <= canvas.winfo_height():
-            # Unbind mousewheel scroll when no scrollbar needed
+            # All rows fit: hide scrollbar and disable scrolling
+            scrollbar.pack_forget()
             canvas.unbind_all("<MouseWheel>")
             canvas.unbind_all("<Button-4>")
             canvas.unbind_all("<Button-5>")
         else:
-            # Rebind mousewheel if content exceeds canvas
+            # Content too tall: show scrollbar and enable scrolling
+            scrollbar.pack(side="right", fill="y")
             canvas.bind_all("<MouseWheel>", _on_mousewheel)
             canvas.bind_all("<Button-4>", _on_mousewheel)
             canvas.bind_all("<Button-5>", _on_mousewheel)
