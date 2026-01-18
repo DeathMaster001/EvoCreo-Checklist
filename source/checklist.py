@@ -58,15 +58,31 @@ def apply_filter(*args):
     for row_frame in row_order:
         row_frame.pack_forget()
 
-    # Repack in original order only if they match filter
+    # Repack only if matches filter
     for row_frame in row_order:
         creo_data = row_frames[row_frame]
         if query in creo_data["name"].lower():
             row_frame.pack(fill="x", anchor="w", padx=5, pady=2)
 
-    # ✅ Fix scrolling
-    update_scrollregion()       # recalc scrollable area
-    canvas.yview_moveto(0)      # scroll to top
+    # Recalculate scrollable area
+    update_scrollregion()
+
+    # Scroll to top
+    canvas.yview_moveto(0)
+
+    # Disable scrolling if content fits in canvas
+    if canvas.bbox("all"):  # make sure there's content
+        content_height = canvas.bbox("all")[3]
+        if content_height <= canvas.winfo_height():
+            # Unbind mousewheel scroll when no scrollbar needed
+            canvas.unbind_all("<MouseWheel>")
+            canvas.unbind_all("<Button-4>")
+            canvas.unbind_all("<Button-5>")
+        else:
+            # Rebind mousewheel if content exceeds canvas
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            canvas.bind_all("<Button-4>", _on_mousewheel)
+            canvas.bind_all("<Button-5>", _on_mousewheel)
 
 
 filter_var.trace_add("write", apply_filter)
