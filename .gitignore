@@ -418,3 +418,4 @@ FodyWeavers.xsd
 *.msp
 
 *.venv
+checklist_save.json
