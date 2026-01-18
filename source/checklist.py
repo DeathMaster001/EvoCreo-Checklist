@@ -46,6 +46,11 @@ filter_entry.pack(side="left", padx=5)
 # ===== Filter function =====
 
 
+def update_scrollregion():
+    canvas.update_idletasks()  # make sure geometry updates
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+
 def apply_filter(*args):
     query = filter_var.get().lower()
 
@@ -58,6 +63,10 @@ def apply_filter(*args):
         creo_data = row_frames[row_frame]
         if query in creo_data["name"].lower():
             row_frame.pack(fill="x", anchor="w", padx=5, pady=2)
+
+    # ✅ Fix scrolling
+    update_scrollregion()       # recalc scrollable area
+    canvas.yview_moveto(0)      # scroll to top
 
 
 filter_var.trace_add("write", apply_filter)
