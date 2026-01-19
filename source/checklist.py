@@ -24,20 +24,37 @@ top_frame = tk.Frame(root, bg="lightblue")
 top_frame.pack(fill="x", padx=5, pady=5)
 
 
-def check_all():
-    for var in checkbox_vars.values():
-        var.set(1)
+def check_all_seen():
+    for vars in checkbox_vars.values():
+        vars["seen"].set(1)
 
 
-def uncheck_all():
-    for var in checkbox_vars.values():
-        var.set(0)
+def uncheck_all_seen():
+    for vars in checkbox_vars.values():
+        vars["seen"].set(0)
 
 
-tk.Button(top_frame, text="Check All",
-          command=check_all).pack(side="left", padx=2)
-tk.Button(top_frame, text="Uncheck All",
-          command=uncheck_all).pack(side="left", padx=2)
+def check_all_caught():
+    for vars in checkbox_vars.values():
+        vars["caught"].set(1)
+
+
+def uncheck_all_caught():
+    for vars in checkbox_vars.values():
+        vars["caught"].set(0)
+
+
+tk.Button(top_frame, text="Check All (Seen)",
+          command=check_all_seen).pack(side="left", padx=2)
+
+tk.Button(top_frame, text="Uncheck All (Seen)",
+          command=uncheck_all_seen).pack(side="left", padx=2)
+
+tk.Button(top_frame, text="Check All (Caught)",
+          command=check_all_caught).pack(side="left", padx=2)
+
+tk.Button(top_frame, text="Uncheck All (Caught)",
+          command=uncheck_all_caught).pack(side="left", padx=2)
 
 tk.Label(top_frame, text="Filter by Name:",
          bg="lightblue").pack(side="left", padx=5)
@@ -48,6 +65,22 @@ filter_entry.pack(side="left", padx=5)
 # ====== Metadata Label ======
 tk.Label(root, text="Accurate as of Jan 18, 2026 | Source: In-game",
          bg="lightblue").pack(side="bottom", pady=5)
+
+# ====== Column Headers ======
+header_frame = tk.Frame(root, bg="lightblue")
+header_frame.pack(fill="x", padx=5)
+
+tk.Label(header_frame, text="Seen", width=6, bg="lightblue",
+         font=("Segoe UI", 9, "bold")).pack(side="left")
+tk.Label(header_frame, text="Caught", width=7, bg="lightblue",
+         font=("Segoe UI", 9, "bold")).pack(side="left")
+tk.Label(header_frame, text="ID", width=4, bg="lightblue",
+         font=("Segoe UI", 9, "bold")).pack(side="left", padx=2)
+tk.Label(header_frame, text="", width=6, bg="lightblue").pack(
+    side="left")  # icon spacer
+tk.Label(header_frame, text="Name", bg="lightblue",
+         font=("Segoe UI", 9, "bold")).pack(side="left")
+
 
 # ====== Canvas & Scrollbar Setup ======
 canvas = tk.Canvas(root, bg="lightblue")
@@ -92,14 +125,21 @@ def load_creos(path):
 
 def create_creo_row(creo_id, creo_data):
     """Create a single row with checkbox, icon, ID, and name."""
-    var = tk.IntVar()
-    checkbox_vars[creo_id] = var
+    seen_var = tk.IntVar()
+    caught_var = tk.IntVar()
+
+    checkbox_vars[creo_id] = {
+        "seen": seen_var,
+        "caught": caught_var
+    }
 
     frame = tk.Frame(scrollable_frame, bg="lightblue")
     frame.pack(fill="x", anchor="w", padx=5, pady=2)
 
-    # Checkbox
-    tk.Checkbutton(frame, variable=var, bg="lightblue").pack(side="left")
+    tk.Checkbutton(frame, variable=seen_var, bg="lightblue").pack(side="left")
+    tk.Checkbutton(frame, variable=caught_var,
+                   bg="lightblue").pack(side="left")
+
     # ID
     tk.Label(frame, text=creo_id, width=4,
              bg="lightblue").pack(side="left", padx=2)
@@ -162,8 +202,13 @@ filter_var.trace_add("write", apply_filter)
 
 
 def save_checklist():
-    checked = {cid: True for cid, var in checkbox_vars.items()
-               if var.get() == 1}
+    checked = {
+        cid: {
+            "seen": vars["seen"].get(),
+            "caught": vars["caught"].get()
+        }
+        for cid, vars in checkbox_vars.items()
+    }
     save_path = os.path.join(script_dir, "checklist_save.json")
     with open(save_path, "w") as f:
         json.dump(checked, f, indent=2)
@@ -176,8 +221,10 @@ def load_checklist():
     if os.path.exists(save_path):
         with open(save_path, "r") as f:
             saved = json.load(f)
-        for cid, var in checkbox_vars.items():
-            var.set(1 if saved.get(cid) else 0)
+        for cid, vars in checkbox_vars.items():
+            data = saved.get(cid, {})
+            vars["seen"].set(data.get("seen", 0))
+            vars["caught"].set(data.get("caught", 0))
         messagebox.showinfo("Checklist Loaded",
                             f"Loaded {len(saved)} Creo(s) successfully!")
     else:
