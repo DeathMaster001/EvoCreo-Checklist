@@ -55,3 +55,10 @@ python source/checklist.py
 - Caught Only shows only Creos that have been caught.
 - Clicking Check All Caught automatically checks Seen for those Creos.  
 Seen checkboxes are disabled while Caught is checked.
+
+---
+## Disclaimer
+
+This is an unofficial, fan-made EvoCreo tool.  
+Not affiliated with or endorsed by Ilmfinity or EvoCreo.  
+All game assets belong to their respective owners.
