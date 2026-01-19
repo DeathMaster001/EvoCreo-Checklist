@@ -42,17 +42,16 @@ def toggle_all_caught():
     toggle_caught = not toggle_caught
 
 
-tk.Button(top_frame, text="Toggle All Seen",
-          command=toggle_all_seen).pack(side="left", padx=2)
-tk.Button(top_frame, text="Toggle All Caught",
-          command=toggle_all_caught).pack(side="left", padx=2)
-
-
 tk.Label(top_frame, text="Filter by Name or ID:",
          bg="lightblue").pack(side="left", padx=5)
 filter_var = tk.StringVar()
 filter_entry = tk.Entry(top_frame, textvariable=filter_var)
 filter_entry.pack(side="left", padx=5)
+
+tk.Button(top_frame, text="Toggle All Seen",
+          command=toggle_all_seen).pack(side="left", padx=2)
+tk.Button(top_frame, text="Toggle All Caught",
+          command=toggle_all_caught).pack(side="left", padx=2)
 
 # ====== Metadata Label ======
 tk.Label(root, text="Accurate as of Jan 18, 2026 | Source: In-game",
