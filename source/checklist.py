@@ -18,39 +18,35 @@ checkbox_vars = {}
 row_frames = {}
 images = {}
 
+# Keep track of toggle state
+toggle_seen = True  # True = next click will check all
+toggle_caught = True
+
+
 # ====== Top Frame with Buttons & Filter ======
 top_frame = tk.Frame(root, bg="lightblue")
 top_frame.pack(fill="x", padx=5, pady=5)
 
 
-def check_all_seen():
+def toggle_all_seen():
+    global toggle_seen
     for vars in checkbox_vars.values():
-        vars["seen"].set(1)
+        vars["seen"].set(1 if toggle_seen else 0)
+    toggle_seen = not toggle_seen  # flip for next click
 
 
-def uncheck_all_seen():
+def toggle_all_caught():
+    global toggle_caught
     for vars in checkbox_vars.values():
-        vars["seen"].set(0)
+        vars["caught"].set(1 if toggle_caught else 0)
+    toggle_caught = not toggle_caught
 
 
-def check_all_caught():
-    for vars in checkbox_vars.values():
-        vars["caught"].set(1)
+tk.Button(top_frame, text="Toggle All Seen",
+          command=toggle_all_seen).pack(side="left", padx=2)
+tk.Button(top_frame, text="Toggle All Caught",
+          command=toggle_all_caught).pack(side="left", padx=2)
 
-
-def uncheck_all_caught():
-    for vars in checkbox_vars.values():
-        vars["caught"].set(0)
-
-
-tk.Button(top_frame, text="Check All (Seen)",
-          command=check_all_seen).pack(side="left", padx=2)
-tk.Button(top_frame, text="Uncheck All (Seen)",
-          command=uncheck_all_seen).pack(side="left", padx=2)
-tk.Button(top_frame, text="Check All (Caught)",
-          command=check_all_caught).pack(side="left", padx=2)
-tk.Button(top_frame, text="Uncheck All (Caught)",
-          command=uncheck_all_caught).pack(side="left", padx=2)
 
 tk.Label(top_frame, text="Filter by Name or ID:",
          bg="lightblue").pack(side="left", padx=5)
