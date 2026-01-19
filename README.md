@@ -27,7 +27,7 @@ pip install pillow
 
 3. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/evocreo-checklist.git
+git clone https://github.com/DeathMaster001/evocreo-checklist.git
 cd evocreo-checklist
 ```
 
