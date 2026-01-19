@@ -216,7 +216,7 @@ def create_creo_row(creo_id, creo_data):
     widgets.append(w)
 
     # Icon
-    img_path = os.path.join(script_dir, creo_data.get("icon", ""))
+    img_path = os.path.join(script_dir, "source", creo_data.get("icon", ""))
     if not os.path.exists(img_path):
         img_path = os.path.join(script_dir, "placeholder", "placeholder.png")
     try:
@@ -318,7 +318,7 @@ file_menu.add_separator()
 file_menu.add_command(label="Exit", command=root.quit)
 
 # ====== Load Creos ======
-creos = load_creos(os.path.join(script_dir, "creos1.json"))
+creos = load_creos(os.path.join(script_dir, "source", "creos1.json"))
 for cid, data in creos.items():
     if cid == "metadata":
         continue
