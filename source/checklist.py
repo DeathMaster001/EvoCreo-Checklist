@@ -130,7 +130,7 @@ btn_caught.config(command=toggle_all_caught)
 filter_var.trace_add("write", lambda *args: apply_filter())
 
 # ====== Metadata Label ======
-tk.Label(root, text="Accurate as of Jan 18, 2026 | Source: In-game",
+tk.Label(root, text="Accurate as of Jan 19, 2026 | Source: In-game",
          bg="lightblue").pack(side="bottom", pady=5)
 
 # ====== Canvas & Scrollbar (Centered Table) ======
