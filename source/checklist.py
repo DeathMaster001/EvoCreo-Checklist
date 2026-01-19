@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
+from tkinter import filedialog
 import json
 import os
 
 # ====== Window Setup ======
 root = tk.Tk()
-root.title("EvoCreo Checklist v1.0.0")
+root.title("EvoCreo Checklist v1.0.1")
 root.configure(bg="lightblue")
 root.geometry("600x600")
 root.minsize(600, 600)
@@ -216,7 +217,7 @@ def create_creo_row(creo_id, creo_data):
     widgets.append(w)
 
     # Icon
-    img_path = os.path.join(script_dir, "source", creo_data.get("icon", ""))
+    img_path = os.path.join(script_dir, creo_data.get("icon", ""))
     if not os.path.exists(img_path):
         img_path = os.path.join(script_dir, "placeholder", "placeholder.png")
     try:
@@ -275,36 +276,54 @@ def apply_filter(*args):
     update_scrollregion()
 
 
-# ====== Save / Load ======
+# ====== Save / Load with File Dialog ======
 def save_checklist():
     checked = {cid: {"seen": vars["seen"].get(), "caught": vars["caught"].get()}
                for cid, vars in checkbox_vars.items()}
-    save_path = os.path.join(script_dir, "checklist_save.json")
-    with open(save_path, "w") as f:
-        json.dump(checked, f, indent=2)
-    messagebox.showinfo("Checklist Saved",
-                        f"Saved {len(checked)} Creo(s) successfully!")
+
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".json",
+        filetypes=[("JSON Files", "*.json")],
+        title="Save Checklist"
+    )
+
+    if save_path:
+        try:
+            with open(save_path, "w") as f:
+                json.dump(checked, f, indent=2)
+            messagebox.showinfo("Checklist Saved",
+                                f"Saved {len(checked)} Creo(s) successfully!")
+        except Exception as e:
+            messagebox.showerror("Error Saving Checklist", str(e))
 
 
 def load_checklist():
-    save_path = os.path.join(script_dir, "checklist_save.json")
-    if os.path.exists(save_path):
-        with open(save_path, "r") as f:
-            saved = json.load(f)
-        for cid, vars in checkbox_vars.items():
-            data = saved.get(cid, {})
-            vars["seen"].set(data.get("seen", 0))
-            vars["caught"].set(data.get("caught", 0))
-            if vars["caught"].get() == 1:
-                vars["seen"].set(1)
-                row_frames[cid]["widgets"][0].config(state="disabled")
-            else:
-                row_frames[cid]["widgets"][0].config(state="normal")
-        messagebox.showinfo("Checklist Loaded",
-                            f"Loaded {len(saved)} Creo(s) successfully!")
+    load_path = filedialog.askopenfilename(
+        defaultextension=".json",
+        filetypes=[("JSON Files", "*.json")],
+        title="Load Checklist"
+    )
+
+    if load_path:
+        try:
+            with open(load_path, "r") as f:
+                saved = json.load(f)
+            for cid, vars in checkbox_vars.items():
+                data = saved.get(cid, {})
+                vars["seen"].set(data.get("seen", 0))
+                vars["caught"].set(data.get("caught", 0))
+                if vars["caught"].get() == 1:
+                    vars["seen"].set(1)
+                    row_frames[cid]["widgets"][0].config(state="disabled")
+                else:
+                    row_frames[cid]["widgets"][0].config(state="normal")
+            messagebox.showinfo("Checklist Loaded",
+                                f"Loaded {len(saved)} Creo(s) successfully!")
+        except Exception as e:
+            messagebox.showerror("Error Loading Checklist", str(e))
     else:
         messagebox.showwarning(
-            "No Save Found", "No saved checklist file was found.")
+            "No File Selected", "No file was selected to load.")
 
 
 # ====== Menu ======
@@ -318,7 +337,7 @@ file_menu.add_separator()
 file_menu.add_command(label="Exit", command=root.quit)
 
 # ====== Load Creos ======
-creos = load_creos(os.path.join(script_dir, "source", "creos1.json"))
+creos = load_creos(os.path.join(script_dir, "creos1.json"))
 for cid, data in creos.items():
     if cid == "metadata":
         continue
