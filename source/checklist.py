@@ -45,6 +45,10 @@ filter_var = tk.StringVar()
 filter_entry = tk.Entry(top_frame, textvariable=filter_var)
 filter_entry.pack(side="left", padx=5)
 
+# ====== Metadata Label ======
+tk.Label(root, text="Accurate as of Jan 18, 2026 | Source: In-game",
+         bg="lightblue").pack(side="bottom", pady=5)
+
 # ====== Canvas & Scrollbar Setup ======
 canvas = tk.Canvas(root, bg="lightblue")
 scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
@@ -193,8 +197,12 @@ file_menu.add_command(label="Exit", command=root.quit)
 
 # ====== Load Creos ======
 creos = load_creos(os.path.join(script_dir, "creos1.json"))
+
 for creo_id, creo_data in creos.items():
+    if creo_id == "metadata":
+        continue  # skip metadata entry
     create_creo_row(creo_id, creo_data)
+
 
 # ====== Initial scrollbar check ======
 update_scrollbar()
