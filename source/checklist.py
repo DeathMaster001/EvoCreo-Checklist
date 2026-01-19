@@ -16,7 +16,6 @@ root['relief'] = 'sunken'
 # ====== Global Variables ======
 checkbox_vars = {}
 row_frames = {}
-row_order = []
 images = {}
 
 # ====== Top Frame with Buttons & Filter ======
@@ -46,17 +45,14 @@ def uncheck_all_caught():
 
 tk.Button(top_frame, text="Check All (Seen)",
           command=check_all_seen).pack(side="left", padx=2)
-
 tk.Button(top_frame, text="Uncheck All (Seen)",
           command=uncheck_all_seen).pack(side="left", padx=2)
-
 tk.Button(top_frame, text="Check All (Caught)",
           command=check_all_caught).pack(side="left", padx=2)
-
 tk.Button(top_frame, text="Uncheck All (Caught)",
           command=uncheck_all_caught).pack(side="left", padx=2)
 
-tk.Label(top_frame, text="Filter by Name:",
+tk.Label(top_frame, text="Filter by Name or ID:",
          bg="lightblue").pack(side="left", padx=5)
 filter_var = tk.StringVar()
 filter_entry = tk.Entry(top_frame, textvariable=filter_var)
@@ -65,22 +61,6 @@ filter_entry.pack(side="left", padx=5)
 # ====== Metadata Label ======
 tk.Label(root, text="Accurate as of Jan 18, 2026 | Source: In-game",
          bg="lightblue").pack(side="bottom", pady=5)
-
-# ====== Column Headers ======
-header_frame = tk.Frame(root, bg="lightblue")
-header_frame.pack(fill="x", padx=5)
-
-tk.Label(header_frame, text="Seen", width=6, bg="lightblue",
-         font=("Segoe UI", 9, "bold")).pack(side="left")
-tk.Label(header_frame, text="Caught", width=7, bg="lightblue",
-         font=("Segoe UI", 9, "bold")).pack(side="left")
-tk.Label(header_frame, text="ID", width=4, bg="lightblue",
-         font=("Segoe UI", 9, "bold")).pack(side="left", padx=2)
-tk.Label(header_frame, text="", width=6, bg="lightblue").pack(
-    side="left")  # icon spacer
-tk.Label(header_frame, text="Name", bg="lightblue",
-         font=("Segoe UI", 9, "bold")).pack(side="left")
-
 
 # ====== Canvas & Scrollbar Setup ======
 canvas = tk.Canvas(root, bg="lightblue")
@@ -109,10 +89,16 @@ def on_mousewheel(event):
             canvas.yview_scroll(1, "units")
 
 
-# Bind scrolling
 canvas.bind_all("<MouseWheel>", on_mousewheel)
 canvas.bind_all("<Button-4>", on_mousewheel)
 canvas.bind_all("<Button-5>", on_mousewheel)
+
+# ====== Column Headers ======
+headers = ["Seen", "Caught", "ID", "Icon", "Name"]
+for col, text in enumerate(headers):
+    tk.Label(scrollable_frame, text=text, font=("Segoe UI", 9, "bold"),
+             bg="lightblue", width=12 if text == "Name" else 6
+             ).grid(row=0, column=col, padx=5, pady=2, sticky="w")
 
 # ====== Helper Functions ======
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -124,76 +110,65 @@ def load_creos(path):
 
 
 def create_creo_row(creo_id, creo_data):
-    """Create a single row with checkbox, icon, ID, and name."""
     seen_var = tk.IntVar()
     caught_var = tk.IntVar()
+    checkbox_vars[creo_id] = {"seen": seen_var, "caught": caught_var}
 
-    checkbox_vars[creo_id] = {
-        "seen": seen_var,
-        "caught": caught_var
-    }
+    row = len(row_frames) + 1  # header is row 0
+    widgets = []
 
-    frame = tk.Frame(scrollable_frame, bg="lightblue")
-    frame.pack(fill="x", anchor="w", padx=5, pady=2)
+    # Seen / Caught checkboxes
+    w = tk.Checkbutton(scrollable_frame, variable=seen_var, bg="lightblue")
+    w.grid(row=row, column=0)
+    widgets.append(w)
 
-    tk.Checkbutton(frame, variable=seen_var, bg="lightblue").pack(side="left")
-    tk.Checkbutton(frame, variable=caught_var,
-                   bg="lightblue").pack(side="left")
+    w = tk.Checkbutton(scrollable_frame, variable=caught_var, bg="lightblue")
+    w.grid(row=row, column=1)
+    widgets.append(w)
 
     # ID
-    tk.Label(frame, text=creo_id, width=4,
-             bg="lightblue").pack(side="left", padx=2)
-    # Image
-    img_path = os.path.join(script_dir, creo_data["icon"])
+    w = tk.Label(scrollable_frame, text=creo_id, width=4, bg="lightblue")
+    w.grid(row=row, column=2, padx=2)
+    widgets.append(w)
+
+    # Icon (keep original size)
+    img_path = os.path.join(script_dir, creo_data.get("icon", ""))
     if not os.path.exists(img_path):
         img_path = os.path.join(script_dir, "placeholder", "placeholder.png")
     try:
         img = Image.open(img_path)
-    except Exception:
+    except:
         img = Image.open(os.path.join(
             script_dir, "placeholder", "placeholder.png"))
     photo = ImageTk.PhotoImage(img)
     images[creo_id] = photo
-    tk.Label(frame, image=photo, bg="lightblue").pack(side="left", padx=2)
+    w = tk.Label(scrollable_frame, image=photo, bg="lightblue")
+    w.grid(row=row, column=3, padx=2)
+    widgets.append(w)
+
     # Name
-    tk.Label(frame, text=creo_data["name"],
-             bg="lightblue").pack(side="left", padx=5)
+    w = tk.Label(scrollable_frame, text=creo_data.get(
+        "name", ""), bg="lightblue", anchor="w")
+    w.grid(row=row, column=4, sticky="w", padx=5)
+    widgets.append(w)
 
-    row_frames[frame] = creo_data
-    row_order.append(frame)
-
-
-def update_scrollbar():
-    """Show/hide scrollbar based on currently visible rows."""
-    update_scrollregion()
-    visible_count = sum(1 for f in row_order if f.winfo_ismapped())
-
-    if visible_count == 0 or (canvas.bbox("all") and canvas.bbox("all")[3] <= canvas.winfo_height()):
-        scrollbar.pack_forget()
-        canvas.unbind_all("<MouseWheel>")
-        canvas.unbind_all("<Button-4>")
-        canvas.unbind_all("<Button-5>")
-    else:
-        scrollbar.pack(side="right", fill="y")
-        canvas.bind_all("<MouseWheel>", on_mousewheel)
-        canvas.bind_all("<Button-4>", on_mousewheel)
-        canvas.bind_all("<Button-5>", on_mousewheel)
+    row_frames[creo_id] = {"seen_var": seen_var,
+                           "caught_var": caught_var, "widgets": widgets}
 
 # ====== Filtering ======
 
 
 def apply_filter(*args):
     query = filter_var.get().lower()
-
-    for frame in row_order:
-        frame.pack_forget()
-
-    for frame in row_order:
-        if query in row_frames[frame]["name"].lower():
-            frame.pack(fill="x", anchor="w", padx=5, pady=2)
-
-    canvas.yview_moveto(0)
-    update_scrollbar()
+    for cid, data in row_frames.items():
+        # Check exact ID match OR partial name match
+        if query == cid.lower() or query in creos[cid]["name"].lower():
+            for w in data["widgets"]:
+                w.grid()  # show
+        else:
+            for w in data["widgets"]:
+                w.grid_remove()  # hide
+    update_scrollregion()
 
 
 filter_var.trace_add("write", apply_filter)
@@ -206,8 +181,7 @@ def save_checklist():
         cid: {
             "seen": vars["seen"].get(),
             "caught": vars["caught"].get()
-        }
-        for cid, vars in checkbox_vars.items()
+        } for cid, vars in checkbox_vars.items()
     }
     save_path = os.path.join(script_dir, "checklist_save.json")
     with open(save_path, "w") as f:
@@ -245,13 +219,12 @@ file_menu.add_command(label="Exit", command=root.quit)
 # ====== Load Creos ======
 creos = load_creos(os.path.join(script_dir, "creos1.json"))
 
-for creo_id, creo_data in creos.items():
-    if creo_id == "metadata":
-        continue  # skip metadata entry
-    create_creo_row(creo_id, creo_data)
-
+for cid, data in creos.items():
+    if cid == "metadata":
+        continue
+    create_creo_row(cid, data)
 
 # ====== Initial scrollbar check ======
-update_scrollbar()
+update_scrollregion()
 
 root.mainloop()
