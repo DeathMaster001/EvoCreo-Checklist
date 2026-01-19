@@ -52,7 +52,7 @@ def toggle_all_caught():
     toggle_caught = not toggle_caught
 
 
-tk.Label(top_frame, text="Filter by Name or ID:",
+tk.Label(top_frame, text="Filter (Name or ID):",
          bg="lightblue").pack(side="left", padx=5)
 filter_var = tk.StringVar()
 filter_entry = tk.Entry(top_frame, textvariable=filter_var)
