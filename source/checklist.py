@@ -27,11 +27,18 @@ toggle_caught = True
 top_frame = tk.Frame(root, bg="lightblue")
 top_frame.pack(fill="x", padx=5, pady=5)
 
+# We’ll keep references to buttons so we can update text
+btn_seen = tk.Button(top_frame, text="Check All Seen")
+btn_caught = tk.Button(top_frame, text="Check All Caught")
+
 
 def toggle_all_seen():
     global toggle_seen
     for vars in checkbox_vars.values():
         vars["seen"].set(1 if toggle_seen else 0)
+    # Update button text
+    btn_seen.config(
+        text="Uncheck All Seen" if toggle_seen else "Check All Seen")
     toggle_seen = not toggle_seen  # flip for next click
 
 
@@ -39,6 +46,9 @@ def toggle_all_caught():
     global toggle_caught
     for vars in checkbox_vars.values():
         vars["caught"].set(1 if toggle_caught else 0)
+    # Update button text
+    btn_caught.config(
+        text="Uncheck All Caught" if toggle_caught else "Check All Caught")
     toggle_caught = not toggle_caught
 
 
@@ -48,10 +58,13 @@ filter_var = tk.StringVar()
 filter_entry = tk.Entry(top_frame, textvariable=filter_var)
 filter_entry.pack(side="left", padx=5)
 
-tk.Button(top_frame, text="Toggle All Seen",
-          command=toggle_all_seen).pack(side="left", padx=2)
-tk.Button(top_frame, text="Toggle All Caught",
-          command=toggle_all_caught).pack(side="left", padx=2)
+# Pack the buttons that actually update their text
+btn_seen.config(command=toggle_all_seen)
+btn_seen.pack(side="left", padx=2)
+
+btn_caught.config(command=toggle_all_caught)
+btn_caught.pack(side="left", padx=2)
+
 
 # ====== Metadata Label ======
 tk.Label(root, text="Accurate as of Jan 18, 2026 | Source: In-game",
