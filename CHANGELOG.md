@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.0] - 2026-01-21
+### Added
+- Clicking a Creo’s name now opens its corresponding EvoCreo fandom wiki page.
+
 ## [1.0.1] - 2026-01-19
 ### Fixed / Improved
 - Added Windows file dialogs for **Save Checklist** and **Load Checklist**.

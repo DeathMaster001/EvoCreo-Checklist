@@ -1,3 +1,4 @@
+import webbrowser
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
@@ -7,7 +8,7 @@ import os
 
 # ====== Window Setup ======
 root = tk.Tk()
-root.title("EvoCreo Checklist v1.0.1")
+root.title("EvoCreo Checklist v1.1.0")
 root.configure(bg="lightblue")
 root.geometry("600x600")
 root.minsize(600, 600)
@@ -176,10 +177,10 @@ canvas.bind_all("<Button-5>", on_mousewheel)
 
 
 # Column headers
-headers = ["Seen", "Caught", "ID", "Icon", "Name"]
+headers = ["Seen", "Caught", "ID", "Icon", "Name (Click for Wiki)"]
 for col, text in enumerate(headers):
     tk.Label(scrollable_frame, text=text, font=("Segoe UI", 9, "bold"),
-             bg="lightblue", width=12 if text == "Name" else 6).grid(row=0, column=col, padx=5, pady=2, sticky="w")
+             bg="lightblue", width=16 if text == "Name (Click for Wiki)" else 6).grid(row=0, column=col, padx=5, pady=2, sticky="w")
 
 
 # ====== Create Rows ======
@@ -232,9 +233,11 @@ def create_creo_row(creo_id, creo_data):
     widgets.append(w)
 
     # Name
-    w = tk.Label(scrollable_frame, text=creo_data.get(
-        "name", ""), bg="lightblue", anchor="w")
+    w = tk.Label(scrollable_frame,
+                 text=f"{creo_data.get("name", "")}", fg="blue", bg="lightblue", anchor="w")
     w.grid(row=row, column=4, sticky="w", padx=5)
+    w.bind("<Button-1>", lambda e: webbrowser.open_new(
+        f"https://evocreo.fandom.com/wiki/{creo_data.get("name", "").replace(" ", "_")}"))
     widgets.append(w)
 
     row_frames[creo_id] = {"seen_var": seen_var,
