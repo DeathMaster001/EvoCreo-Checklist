@@ -3,7 +3,7 @@
 A simple offline checklist app for EvoCreo to track **Seen** and **Caught** Creos.  
 Works completely offline and allows filtering, auto-updating Seen/Caught statuses, and saving/loading your progress.
 
-![EvoCreo-Checklist window](https://i.imgur.com/bsUPCt9.png)
+![EvoCreo-Checklist window](https://i.imgur.com/4PqQVJw.png)
 
 ---
 
