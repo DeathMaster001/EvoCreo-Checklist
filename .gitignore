@@ -419,3 +419,4 @@ FodyWeavers.xsd
 
 *.venv
 checklist_save.json
+build.txt
