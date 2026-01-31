@@ -8,7 +8,7 @@ import os
 
 # ====== Window Setup ======
 root = tk.Tk()
-root.title("EvoCreo Checklist v1.1.0")
+root.title("EvoCreo Checklist v1.2.0")
 root.configure(bg="lightblue")
 root.geometry("600x600")
 root.minsize(600, 600)
