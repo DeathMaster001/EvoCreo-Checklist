@@ -46,14 +46,14 @@ Run the checklist app with:
 ```bash
 python source/checklist.py
 ```
-Use the Filter box to search for Creos by ID (exact match) or Name (partial match).
-Toggle Seen Only, Caught Only, GM, or Shiny checkboxes to filter your list.
-Use “Not Seen / Not Caught / Not GM / Not Shiny” checkboxes for reverse filters.
-Use Check All / Uncheck All buttons to mark multiple Creos at once.
-Open Stats window via Edit → Open Stats to view totals and completion messages.
-Clear all checkboxes via File → Clear Checklist.
-Open saved progress via File → Open.
-Save progress via File → Save.
+- Use the Filter box to search for Creos by ID (exact match) or Name (partial match).
+- Toggle Seen Only, Caught Only, GM, or Shiny checkboxes to filter your list.
+- Use “Not Seen / Not Caught / Not GM / Not Shiny” checkboxes for reverse filters.
+- Use Check All / Uncheck All buttons to mark multiple Creos at once.
+- Open Stats window via Edit → Open Stats to view totals and completion messages.
+- Clear all checkboxes via File → Clear Checklist.
+- Open saved progress via File → Open.
+- Save progress via File → Save.
 
 ---
 
