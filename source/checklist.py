@@ -5,80 +5,98 @@ from PIL import Image, ImageTk
 from tkinter import filedialog
 import json
 import os
+from dataclasses import dataclass
 
 # ====== Window Setup ======
 root = tk.Tk()
-root.title("EvoCreo Checklist v1.2.0")
+root.title("EvoCreo Checklist v1.2.1")
 root.configure(bg="lightblue")
 root.geometry("600x600")
 root.minsize(600, 600)
 
+# ====== Data Model ======
+
+
+@dataclass
+class CreoEntry:
+    cid: str
+    name: str
+    icon_photo: ImageTk.PhotoImage   # keeps the image alive
+    # The four checkboxes' states (0 or 1)
+    seen_var:   tk.IntVar
+    caught_var: tk.IntVar
+    gm_var:     tk.IntVar
+    shiny_var:  tk.IntVar
+    # The actual checkbox widgets (so we can disable/enable them)
+    cb_seen:   tk.Checkbutton
+    cb_caught: tk.Checkbutton
+    cb_gm:     tk.Checkbutton
+    cb_shiny:  tk.Checkbutton
+    # All widgets in this row (for hiding/showing during filter)
+    all_widgets: list[tk.Widget]
+
+
+# ====== Global Variables ======
+# main storage: cid → CreoEntry object
+creo_entries: dict[str, CreoEntry] = {}
+images = {}
+toggle_seen = True
+toggle_caught = True
+toggle_gm = True
+toggle_shiny = True
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 # ======= Stats Window ======
 stats_window = None  # global reference to the stats window
-stats_labels = {}  # store the label widgets so we can update text dynamically
+stats_labels = {}    # store the label widgets so we can update text dynamically
 
 
 def open_stats_window():
     global stats_window, stats_labels
-
     if stats_window and stats_window.winfo_exists():
         stats_window.lift()
         stats_window.focus_force()
         return
-
     stats_window = tk.Toplevel(root)
     stats_window.title("Checklist Stats")
     stats_window.configure(bg="lightblue")
     stats_window.geometry("300x300")
     stats_window.minsize(300, 200)
     stats_window.transient(root)
-
     # Reset stats_labels dictionary
     stats_labels = {}
-
     # Create labels and store references for updates
     tk.Label(stats_window, text="Checklist Stats", font=("Segoe UI", 10, "bold"),
              bg="lightblue").pack(pady=10)
-
     stats_labels["seen"] = tk.Label(stats_window, text="", bg="lightblue")
     stats_labels["seen"].pack(anchor="w", padx=20)
-
     stats_labels["caught"] = tk.Label(stats_window, text="", bg="lightblue")
     stats_labels["caught"].pack(anchor="w", padx=20)
-
     stats_labels["gm"] = tk.Label(stats_window, text="", bg="lightblue")
     stats_labels["gm"].pack(anchor="w", padx=20)
-
     stats_labels["shiny"] = tk.Label(stats_window, text="", bg="lightblue")
     stats_labels["shiny"].pack(anchor="w", padx=20)
-
     # Congratulatory label
     stats_labels["congrats"] = tk.Label(
         stats_window, text="", bg="lightblue", fg="green", font=("Segoe UI", 9, "bold"))
     stats_labels["congrats"].pack(pady=10)
-
     # Initial update
     update_stats_labels()
 
 
 def update_stats_labels():
     if not stats_window or not stats_window.winfo_exists():
-        return  # window not open, nothing to update
-
-    total = len(checkbox_vars)
-    seen = sum(v["seen"].get() for v in checkbox_vars.values())
-    caught = sum(v["caught"].get() for v in checkbox_vars.values())
-    gm = sum(v["gm"].get() for v in checkbox_vars.values())
-    shiny = sum(v["shiny"].get() for v in checkbox_vars.values())
-
+        return
+    total = len(creo_entries)
+    seen = sum(entry.seen_var.get() for entry in creo_entries.values())
+    caught = sum(entry.caught_var.get() for entry in creo_entries.values())
+    gm = sum(entry.gm_var.get() for entry in creo_entries.values())
+    shiny = sum(entry.shiny_var.get() for entry in creo_entries.values())
     stats_labels["seen"].config(text=f"Seen: {seen}/{total}")
     stats_labels["caught"].config(text=f"Caught: {caught}/{total}")
     stats_labels["gm"].config(text=f"GM: {gm}/{total}")
     stats_labels["shiny"].config(text=f"Shiny: {shiny}/{total}")
-
-    # Congratulatory messages
     congrats_msgs = []
-
     if seen == total:
         congrats_msgs.append("🎉 Incredible! You've seen every single Creo!")
     if caught == total:
@@ -87,56 +105,126 @@ def update_stats_labels():
         congrats_msgs.append("✨ Legendary! You've GM'd all the Creos!")
     if shiny == total:
         congrats_msgs.append("🌟 Spectacular! You've caught every Shiny Creo!")
-
     stats_labels["congrats"].config(text="\n".join(congrats_msgs))
-
-
-# ====== Global Variables ======
-checkbox_vars = {}
-row_frames = {}
-images = {}
-toggle_seen = True
-toggle_caught = True
-toggle_gm = True
-toggle_shiny = True
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # ====== Helper Functions ======
 
 
-def update_seen_caught_lock(cid):
-    seen_cb = row_frames[cid]["widgets"][3]
-    caught_cb = row_frames[cid]["widgets"][4]
-    gm = checkbox_vars[cid]["gm"].get()
-    shiny = checkbox_vars[cid]["shiny"].get()
-    caught = checkbox_vars[cid]["caught"].get()
+def enforce_rules(cid: str):
+    """Central place for auto-check + lock logic"""
+    entry = creo_entries[cid]
+    # Auto-check rules
+    if entry.caught_var.get() or entry.gm_var.get() or entry.shiny_var.get():
+        entry.seen_var.set(1)
+    if entry.gm_var.get():
+        entry.caught_var.set(1)
+    # Lock / unlock checkboxes
+    disable_seen = entry.gm_var.get() or entry.caught_var.get() or entry.shiny_var.get()
+    disable_caught = entry.gm_var.get()
+    entry.cb_seen.config(state="disabled" if disable_seen else "normal")
+    entry.cb_caught.config(state="disabled" if disable_caught else "normal")
 
-    # Auto-check Seen if needed
-    if caught or gm or shiny:
-        checkbox_vars[cid]["seen"].set(1)
 
-    # Only auto-check Caught if GM (Shiny does NOT auto-check Caught)
-    if gm:
-        checkbox_vars[cid]["caught"].set(1)
-
-    # Lock checkboxes based on rules
-    if gm:
-        # GM locks both
-        seen_cb.config(state="disabled")
-        caught_cb.config(state="disabled")
-    elif shiny:
-        # Shiny locks Seen only
-        seen_cb.config(state="disabled")
-        caught_cb.config(state="normal")
-    elif caught:
-        # Caught locks Seen only
-        seen_cb.config(state="disabled")
-        caught_cb.config(state="normal")
+def toggle_all_category(category: str):
+    toggle_var_name = f"toggle_{category}"
+    toggle_var = globals()[toggle_var_name]
+    # Decide action based on CURRENT state
+    will_check = toggle_var
+    new_value = 1 if will_check else 0
+    var_attr = f"{category}_var"
+    button_attr = f"btn_{category}"
+    button = globals()[button_attr]
+    changed = False
+    for entry in creo_entries.values():
+        cb = getattr(entry, f"cb_{category}")
+        if not cb.winfo_viewable() or cb.cget("state") == "disabled":
+            continue
+        var = getattr(entry, var_attr)
+        old_value = var.get()
+        var.set(new_value)
+        if old_value != new_value:
+            changed = True
+        if new_value == 1:
+            if category == "caught":
+                entry.seen_var.set(1)
+            elif category == "gm":
+                entry.seen_var.set(1)
+                entry.caught_var.set(1)
+            elif category == "shiny":
+                entry.seen_var.set(1)
+        enforce_rules(entry.cid)
+    if changed:
+        update_stats_labels()
+    # Flip for next time
+    toggle_var = not toggle_var
+    globals()[toggle_var_name] = toggle_var
+    # Button text for NEXT action
+    next_is_check = toggle_var
+    if next_is_check:
+        button_text = f"Check All {category.title()}"
     else:
-        # Normal, everything editable
-        seen_cb.config(state="normal")
-        caught_cb.config(state="normal")
+        button_text = f"Uncheck All {category.title()}"
+    button.config(text=button_text)
+
+
+def apply_filter(*args):
+    """Hide/show rows based on search text and the 8 filter checkboxes"""
+    query = filter_var.get().lower().strip()
+    # Get all filter states (True = show only matching)
+    filters = {
+        "seen":     show_seen_var.get() == 1,
+        "caught":   show_caught_var.get() == 1,
+        "gm":       show_gm_var.get() == 1,
+        "shiny":    show_shiny_var.get() == 1,
+        "unseen":   show_unseen_var.get() == 1,
+        "uncaught": show_uncaught_var.get() == 1,
+        "ungm":     show_ungm_var.get() == 1,
+        "unshiny":  show_unshiny_var.get() == 1,
+    }
+    visible_count = 0
+    for entry in creo_entries.values():
+        # Start with assume show
+        show = True
+        # Name or ID search
+        if query:
+            name_match = query in entry.name.lower()
+            try:
+                id_match = int(query) == int(entry.cid)
+            except ValueError:
+                id_match = False
+            if not (name_match or id_match):
+                show = False
+        # Status filters (positive)
+        if filters["seen"] and entry.seen_var.get() != 1:
+            show = False
+        if filters["caught"] and entry.caught_var.get() != 1:
+            show = False
+        if filters["gm"] and entry.gm_var.get() != 1:
+            show = False
+        if filters["shiny"] and entry.shiny_var.get() != 1:
+            show = False
+        # Negative filters ("Not X")
+        if filters["unseen"] and entry.seen_var.get() == 1:
+            show = False
+        if filters["uncaught"] and entry.caught_var.get() == 1:
+            show = False
+        if filters["ungm"] and entry.gm_var.get() == 1:
+            show = False
+        if filters["unshiny"] and entry.shiny_var.get() == 1:
+            show = False
+        # Apply visibility
+        for widget in entry.all_widgets:
+            if show:
+                widget.grid()
+            else:
+                widget.grid_remove()
+        if show:
+            visible_count += 1
+    # Update scroll area
+    update_scrollregion()
+    # Optional: update stats only for visible? For now, keep total as all
+    # (you can change later if you want visible-only stats)
+    update_stats_labels()
 
 
 def load_creos(path):
@@ -165,75 +253,60 @@ def on_mousewheel(event):
 # ====== Top Frame with Filter & Checkboxes ======
 top_frame = tk.Frame(root, bg="lightblue")
 top_frame.pack(fill="x", padx=5, pady=5)
-
 # Row 1: Filter
 filter_frame = tk.Frame(top_frame, bg="lightblue")
 filter_frame.pack(fill="x", pady=2)
-
 # Inner frame to hold label + entry
 filter_inner = tk.Frame(filter_frame, bg="lightblue")
 filter_inner.pack(anchor="center")  # This centers horizontally
-
 tk.Label(filter_inner, text="Filter:", bg="lightblue").pack(
     side="left", padx=(0, 5))
 filter_var = tk.StringVar()
+filter_var.trace_add("write", apply_filter)
 tk.Entry(filter_inner, textvariable=filter_var, width=30).pack(side="left")
-
-
 # ===== Row 2: Show Seen / Show Caught, centered =====
 checkbox_frame = tk.Frame(top_frame, bg="lightblue")
 checkbox_frame.pack(fill="x", pady=2, padx=5)
-
 # Inner frame to hold the checkboxes, centered
 checkbox_inner_frame = tk.Frame(checkbox_frame, bg="lightblue")
 checkbox_inner_frame.pack(anchor="center")  # Centers horizontally
-
 show_seen_var = tk.IntVar(value=0)
 show_caught_var = tk.IntVar(value=0)
 show_gm_var = tk.IntVar(value=0)
 show_shiny_var = tk.IntVar(value=0)
-
 tk.Checkbutton(checkbox_inner_frame, text="Seen", variable=show_seen_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame, text="Caught", variable=show_caught_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame, text="GM", variable=show_gm_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame, text="Shiny", variable=show_shiny_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
-
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 # ===== Row 3: Filter checkboxes 2 centered =====
 checkbox_frame2 = tk.Frame(top_frame, bg="lightblue")
 checkbox_frame2.pack(fill="x", pady=2, padx=5)
-
 # Inner frame to hold the checkboxes, centered
 checkbox_inner_frame2 = tk.Frame(checkbox_frame2, bg="lightblue")
 checkbox_inner_frame2.pack(anchor="center")  # Centers horizontally
-
 show_unseen_var = tk.IntVar(value=0)
 show_uncaught_var = tk.IntVar(value=0)
 show_ungm_var = tk.IntVar(value=0)
 show_unshiny_var = tk.IntVar(value=0)
-
 tk.Checkbutton(checkbox_inner_frame2, text="Not Seen", variable=show_unseen_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame2, text="Not Caught", variable=show_uncaught_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame2, text="Not GM", variable=show_ungm_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame2, text="Not Shiny", variable=show_unshiny_var,
-               bg="lightblue", command=lambda: apply_filter()).pack(side="left", padx=10)
-
-
+               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 # ===== Row 4: Check All Seen / Check All Caught, Check All GM / Check All Shiny, centered =====
 check_frame = tk.Frame(top_frame, bg="lightblue")
 check_frame.pack(fill="x", pady=2)
-
 # Inner frame to hold buttons, centered
 buttons_inner_frame = tk.Frame(check_frame, bg="lightblue")
 # Centers the inner frame horizontally
 buttons_inner_frame.pack(anchor="center")
-
 btn_seen = tk.Button(buttons_inner_frame, text="Check All Seen")
 btn_seen.pack(side="left", padx=10)
 btn_caught = tk.Button(buttons_inner_frame, text="Check All Caught")
@@ -242,7 +315,10 @@ btn_gm = tk.Button(buttons_inner_frame, text="Check All GM")
 btn_gm.pack(side="left", padx=10)
 btn_shiny = tk.Button(buttons_inner_frame, text="Check All Shiny")
 btn_shiny.pack(side="left", padx=10)
-
+btn_seen.config(command=lambda: toggle_all_category("seen"))
+btn_caught.config(command=lambda: toggle_all_category("caught"))
+btn_gm.config(command=lambda: toggle_all_category("gm"))
+btn_shiny.config(command=lambda: toggle_all_category("shiny"))
 # Row 5: Info label
 info_label = tk.Label(
     top_frame,
@@ -250,80 +326,6 @@ info_label = tk.Label(
     bg="lightblue",
     fg="darkblue")
 info_label.pack(fill="x", pady=2, padx=5)
-
-# ====== Button Functions ======
-
-
-def toggle_all_seen():
-    global toggle_seen
-    for cid, vars in checkbox_vars.items():
-        seen_cb = row_frames[cid]["widgets"][3]
-        if seen_cb.winfo_viewable() and seen_cb.cget("state") != "disabled":
-            vars["seen"].set(1 if toggle_seen else 0)
-    btn_seen.config(
-        text="Uncheck All Seen" if toggle_seen else "Check All Seen")
-    # Apply locks after changes
-    for cid in checkbox_vars:
-        update_seen_caught_lock(cid)
-    update_stats_labels()
-    toggle_seen = not toggle_seen
-
-
-def toggle_all_caught():
-    global toggle_caught
-    for cid, vars in checkbox_vars.items():
-        caught_cb = row_frames[cid]["widgets"][4]
-        if caught_cb.winfo_viewable() and caught_cb.cget("state") != "disabled":
-            vars["caught"].set(1 if toggle_caught else 0)
-            if vars["caught"].get() == 1:
-                vars["seen"].set(1)
-    btn_caught.config(
-        text="Uncheck All Caught" if toggle_caught else "Check All Caught")
-    for cid in checkbox_vars:
-        update_seen_caught_lock(cid)
-    update_stats_labels()
-    toggle_caught = not toggle_caught
-
-
-def toggle_all_gm():
-    global toggle_gm
-    for cid, vars in checkbox_vars.items():
-        gm_cb = row_frames[cid]["widgets"][5]
-        if gm_cb.winfo_viewable() and gm_cb.cget("state") != "disabled":
-            vars["gm"].set(1 if toggle_gm else 0)
-            if vars["gm"].get() == 1:
-                vars["seen"].set(1)
-                vars["caught"].set(1)
-    btn_gm.config(text="Uncheck All GM" if toggle_gm else "Check All GM")
-    for cid in checkbox_vars:
-        update_seen_caught_lock(cid)
-    update_stats_labels()
-    toggle_gm = not toggle_gm
-
-
-def toggle_all_shiny():
-    global toggle_shiny
-    for cid, vars in checkbox_vars.items():
-        shiny_cb = row_frames[cid]["widgets"][6]
-        if shiny_cb.winfo_viewable() and shiny_cb.cget("state") != "disabled":
-            vars["shiny"].set(1 if toggle_shiny else 0)
-            if vars["shiny"].get() == 1:
-                vars["seen"].set(1)
-                vars["caught"].set(1)
-    btn_shiny.config(
-        text="Uncheck All Shiny" if toggle_shiny else "Check All Shiny")
-    for cid in checkbox_vars:
-        update_seen_caught_lock(cid)
-    update_stats_labels()
-    toggle_shiny = not toggle_shiny
-
-
-btn_seen.config(command=toggle_all_seen)
-btn_caught.config(command=toggle_all_caught)
-btn_gm.config(command=toggle_all_gm)
-btn_shiny.config(command=toggle_all_shiny)
-filter_var.trace_add("write", lambda *args: apply_filter())
-
 # ====== Metadata Label ======
 tk.Label(root, text="Accurate as of Jan 19, 2026 | Source: In-game",
          bg="lightblue").pack(side="bottom", pady=5)
@@ -331,26 +333,21 @@ tk.Label(root, text="Accurate as of Jan 19, 2026 | Source: In-game",
 # ====== Canvas & Scrollbar (Centered Table) ======
 canvas_wrapper = tk.Frame(root, bg="lightblue")
 canvas_wrapper.pack(fill="both", expand=True)
-
 # Inner frame to center everything
 center_frame = tk.Frame(canvas_wrapper, bg="lightblue")
 center_frame.pack(anchor="center", expand=True)
-
 # Canvas for scrollable content
 canvas = tk.Canvas(center_frame, bg="lightblue", width=550, height=425,
                    highlightthickness=0, bd=0, relief="flat")
 scrollbar = tk.Scrollbar(center_frame, orient="vertical", command=canvas.yview)
 canvas.configure(yscrollcommand=scrollbar.set)
-
 # Pack canvas and scrollbar side by side
 canvas.pack(side="left", fill="both", expand=False)
 scrollbar.pack(side="left", fill="y")
-
 # Frame inside canvas to hold the table, centered
 scrollable_frame = tk.Frame(canvas, bg="lightblue")
 table_window = canvas.create_window(
     (0, 0), window=scrollable_frame, anchor="n")
-
 # Function to center table when resizing
 
 
@@ -363,7 +360,6 @@ def center_table(event):
 
 scrollable_frame.bind("<Configure>", lambda e: update_scrollregion())
 canvas.bind("<Configure>", center_table)
-
 # Mouse wheel scrolling
 canvas.bind_all("<MouseWheel>", on_mousewheel)
 canvas.bind_all("<Button-4>", on_mousewheel)
@@ -374,7 +370,6 @@ HEADER_WIDTH = {
     "Shiny": 9,
     "Name (Click for Wiki)": 16,
 }
-
 # Column headers
 headers = ["ID", "Name (Click for Wiki)", "Icon",
            "Seen", "Caught", "GM\n(Obtained)", "Shiny"]
@@ -387,267 +382,214 @@ for col, text in enumerate(headers):
              justify="center"
              ).grid(row=0, column=col, padx=4, pady=2)
 
-
 # ====== Create Rows ======
-def create_creo_row(creo_id, creo_data):
-    seen_var = tk.IntVar()
-    caught_var = tk.IntVar()
-    gm_var = tk.IntVar()
-    shiny_var = tk.IntVar()
-    checkbox_vars[creo_id] = {
-        "seen": seen_var, "caught": caught_var, "gm": gm_var, "shiny": shiny_var}
 
-    row = len(row_frames) + 1
+
+def create_creo_row(creo_id: str, creo_data: dict):
+    name = creo_data.get("name", "???").strip()
+    # Create the state variables (0 or 1)
+    seen_var = tk.IntVar(value=0)
+    caught_var = tk.IntVar(value=0)
+    gm_var = tk.IntVar(value=0)
+    shiny_var = tk.IntVar(value=0)
+    # We'll collect all widgets here so we can hide/show the whole row later
     widgets = []
-
-    # ID label
+    row_num = len(creo_entries) + 1   # row 1, 2, 3... for grid
+    # Column 0 - ID
     w = tk.Label(scrollable_frame, text=creo_id, width=4, bg="lightblue")
-    w.grid(row=row, column=0, padx=2)
+    w.grid(row=row_num, column=0, padx=2)
     widgets.append(w)
-
-    # Name
-    w = tk.Label(scrollable_frame,
-                 text=f"{creo_data.get("name", "")}", fg="blue", bg="lightblue", anchor="w")
-    w.grid(row=row, column=1, sticky="w", padx=10)
-    w.bind("<Button-1>", lambda e: webbrowser.open_new(
-        f"https://evocreo.fandom.com/wiki/{creo_data.get("name", "").replace(" ", "_")}"))
+    # Column 1 - Name (clickable to wiki)
+    w = tk.Label(scrollable_frame, text=name,
+                 fg="blue", bg="lightblue", anchor="w")
+    w.grid(row=row_num, column=1, sticky="w", padx=10)
+    w.bind("<Button-1>", lambda e, n=name: webbrowser.open_new(
+        f"https://evocreo.fandom.com/wiki/{n.replace(' ', '_')}"))
     widgets.append(w)
-
-    # Icon
+    # Column 2 - Icon
     img_path = os.path.join(script_dir, creo_data.get("icon", ""))
     if not os.path.exists(img_path):
         img_path = os.path.join(script_dir, "placeholder", "placeholder.png")
     try:
         img = Image.open(img_path)
-    except:
+    except Exception:
         img = Image.open(os.path.join(
             script_dir, "placeholder", "placeholder.png"))
     photo = ImageTk.PhotoImage(img)
-    images[creo_id] = photo
+    images[creo_id] = photo   # keep reference so image doesn't disappear
     w = tk.Label(scrollable_frame, image=photo, bg="lightblue")
-    w.grid(row=row, column=2, padx=2)
+    w.grid(row=row_num, column=2, padx=2)
     widgets.append(w)
+    # ── Checkboxes ──────────────────────────────────────────────
+    # Helper that every checkbox will call
 
+    def on_change():
+        enforce_rules(creo_id)         # we'll define this function next
+        update_stats_labels()
     # Seen checkbox
-    seen_cb = tk.Checkbutton(
-        scrollable_frame, variable=seen_var, bg="lightblue",
-        command=lambda cid=creo_id: [
-            update_seen_caught_lock(cid), update_stats_labels()]
+    cb_seen = tk.Checkbutton(scrollable_frame, variable=seen_var, bg="lightblue",
+                             command=on_change)
+    cb_seen.grid(row=row_num, column=3)
+    widgets.append(cb_seen)
+    # Caught checkbox
+
+    def on_caught():
+        if caught_var.get() == 1:
+            seen_var.set(1)
+        on_change()
+    cb_caught = tk.Checkbutton(scrollable_frame, variable=caught_var, bg="lightblue",
+                               command=on_caught)
+    cb_caught.grid(row=row_num, column=4)
+    widgets.append(cb_caught)
+    # GM checkbox
+
+    def on_gm():
+        if gm_var.get() == 1:
+            seen_var.set(1)
+            caught_var.set(1)
+        on_change()
+    cb_gm = tk.Checkbutton(scrollable_frame, variable=gm_var, bg="lightblue",
+                           command=on_gm)
+    cb_gm.grid(row=row_num, column=5)
+    widgets.append(cb_gm)
+    # Shiny checkbox
+
+    def on_shiny():
+        if shiny_var.get() == 1:
+            seen_var.set(1)
+        on_change()
+    cb_shiny = tk.Checkbutton(scrollable_frame, variable=shiny_var, bg="lightblue",
+                              command=on_shiny)
+    cb_shiny.grid(row=row_num, column=6)
+    widgets.append(cb_shiny)
+    # ── Create the object that holds EVERYTHING for this Creo ──
+    entry = CreoEntry(
+        cid=creo_id,
+        name=name,
+        icon_photo=photo,
+        seen_var=seen_var,
+        caught_var=caught_var,
+        gm_var=gm_var,
+        shiny_var=shiny_var,
+        cb_seen=cb_seen,
+        cb_caught=cb_caught,
+        cb_gm=cb_gm,
+        cb_shiny=cb_shiny,
+        all_widgets=widgets
     )
-    seen_cb.grid(row=row, column=3)
-    widgets.append(seen_cb)
+    creo_entries[creo_id] = entry
+    # Apply rules right away (important!)
+    enforce_rules(creo_id)
 
-    # Caught checkbox with auto-update for Seen
-    def caught_clicked(cid=creo_id):
-        if checkbox_vars[cid]["caught"].get() == 1:
-            checkbox_vars[cid]["seen"].set(1)
-        update_seen_caught_lock(cid)
-        update_stats_labels()
-    caught_cb = tk.Checkbutton(scrollable_frame, variable=caught_var, bg="lightblue",
-                               command=caught_clicked)
-    caught_cb.grid(row=row, column=4)
-    widgets.append(caught_cb)
-
-    # GM checkbox with auto-update for Seen / Caught
-    def gm_clicked(cid=creo_id):
-        if checkbox_vars[cid]["gm"].get():
-            checkbox_vars[cid]["seen"].set(1)
-            checkbox_vars[cid]["caught"].set(1)
-        update_seen_caught_lock(cid)
-        update_stats_labels()
-    gm_cb = tk.Checkbutton(
-        scrollable_frame, variable=gm_var, bg="lightblue", command=gm_clicked)
-    gm_cb.grid(row=row, column=5)
-    widgets.append(gm_cb)
-
-    # Shiny checkbox with auto-update for Seen
-    def shiny_clicked(cid=creo_id):
-        if checkbox_vars[cid]["shiny"].get():
-            checkbox_vars[cid]["seen"].set(1)  # Always mark Seen
-            # Do NOT auto-check Caught to allow edge cases where Shiny isn't caught
-        update_seen_caught_lock(cid)
-        update_stats_labels()
-    shiny_cb = tk.Checkbutton(
-        scrollable_frame, variable=shiny_var, bg="lightblue", command=shiny_clicked)
-    shiny_cb.grid(row=row, column=6)
-    widgets.append(shiny_cb)
-
-    row_frames[creo_id] = {"seen_var": seen_var,
-                           "caught_var": caught_var, "gm_var": gm_var, "shiny_var": shiny_var, "widgets": widgets}
+# ====== Save / Load and Clear ======
 
 
-# ====== Filter Function ======
-def apply_filter(*args):
-    query = filter_var.get().lower().strip()
-    seen_only = show_seen_var.get() == 1
-    caught_only = show_caught_var.get() == 1
-    gm_only = show_gm_var.get() == 1
-    shiny_only = show_shiny_var.get() == 1
-    unseen_only = show_unseen_var.get() == 1
-    uncaught_only = show_uncaught_var.get() == 1
-    ungm_only = show_ungm_var.get() == 1
-    unshiny_only = show_unshiny_var.get() == 1
-
-    for cid, data in row_frames.items():
-        creo_name = creos[cid]["name"].lower()
-        seen_checked = data["seen_var"].get()
-        caught_checked = data["caught_var"].get()
-        gm_checked = data["gm_var"].get()
-        shiny_checked = data["shiny_var"].get()
-
-        show = True
-
-        if query:
-            # Match numeric ID exactly
-            id_match = False
-            try:
-                qnum = int(query)
-                if int(cid) == qnum:
-                    id_match = True
-            except ValueError:
-                pass
-
-            # Match name substring
-            name_match = query in creo_name
-
-            # Show only if either matches
-            if not (id_match or name_match):
-                show = False
-
-        # Seen Only: must be seen
-        if seen_only and seen_checked != 1:
-            show = False
-
-        # Caught Only: must be caught
-        if caught_only and caught_checked != 1:
-            show = False
-
-        # GM Only
-        if gm_only and gm_checked != 1:
-            show = False
-
-        # Shiny Only
-        if shiny_only and shiny_checked != 1:
-            show = False
-
-        # Unseen Only: must NOT be seen
-        if unseen_only and seen_checked != 0:
-            show = False
-
-        # Uncaught Only: must NOT be caught
-        if uncaught_only and caught_checked != 0:
-            show = False
-
-        # UnGM Only
-        if ungm_only and gm_checked != 0:
-            show = False
-
-        # UnShiny Only
-        if unshiny_only and shiny_checked != 0:
-            show = False
-
-        for w in data["widgets"]:
-            if show:
-                w.grid()
-            else:
-                w.grid_remove()
-
-    update_scrollregion()
-    update_stats_labels()
-
-
-def clear_checklist():
-    if messagebox.askyesno("Clear Checklist", "Are you sure you want to clear all checkboxes?"):
-        for cid, vars in checkbox_vars.items():
-            vars["seen"].set(0)
-            vars["caught"].set(0)
-            vars["gm"].set(0)
-            vars["shiny"].set(0)
-            update_seen_caught_lock(cid)
-        update_stats_labels()
-        messagebox.showinfo("Checklist Cleared",
-                            "All checkboxes have been reset.")
-
-
-# ====== Save / Load with File Dialog ======
 def save_checklist():
-    checked = {cid: {"seen": vars["seen"].get(), "caught": vars["caught"].get(), "gm": vars["gm"].get(), "shiny": vars["shiny"].get()}
-               for cid, vars in checkbox_vars.items()}
-
-    save_path = filedialog.asksaveasfilename(
+    """Save current states to JSON"""
+    if not creo_entries:
+        messagebox.showinfo("Nothing to save", "No Creos loaded.")
+        return
+    data = {}
+    for cid, entry in creo_entries.items():
+        data[cid] = {
+            "seen": entry.seen_var.get(),
+            "caught": entry.caught_var.get(),
+            "gm": entry.gm_var.get(),
+            "shiny": entry.shiny_var.get(),
+        }
+    path = filedialog.asksaveasfilename(
         defaultextension=".json",
-        filetypes=[("JSON Files", "*.json")],
+        filetypes=[("JSON files", "*.json")],
         title="Save Checklist"
     )
+    if not path:
+        return
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        messagebox.showinfo("Saved", f"Saved to:\n{path}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Save failed:\n{e}")
 
-    if save_path:
-        try:
-            with open(save_path, "w") as f:
-                json.dump(checked, f, indent=2)
-            messagebox.showinfo("Checklist Saved",
-                                f"Saved {len(checked)} Creo(s) successfully!")
-        except Exception as e:
-            messagebox.showerror("Error Saving Checklist", str(e))
 
+def load_checklist():
+    """Load states from JSON (with backwards compatibility for checklist files from before 1.2.0)"""
+    if not creo_entries:
+        messagebox.showinfo("Nothing loaded", "Load Creos first.")
+        return
 
-def open_checklist():
-    load_path = filedialog.askopenfilename(
-        defaultextension=".json",
-        filetypes=[("JSON Files", "*.json")],
-        title="Open Checklist"
+    path = filedialog.askopenfilename(
+        filetypes=[("JSON files", "*.json")],
+        title="Load Checklist"
     )
+    if not path:
+        return
 
-    if load_path:
-        try:
-            with open(load_path, "r") as f:
-                saved = json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            saved = json.load(f)
 
-            updated = False  # Track if we added missing keys
+        updated = False  # flag to know if we need to upgrade the file
 
-            for cid, vars in checkbox_vars.items():
-                data = saved.get(cid, {})
+        for cid, entry in creo_entries.items():
+            if cid in saved:
+                data = saved[cid]
 
-                # Ensure gm and shiny exist
+                # ── Backwards compatibility for old saves (missing gm/shiny) ──
                 if "gm" not in data:
                     data["gm"] = 0
                     updated = True
                 if "shiny" not in data:
                     data["shiny"] = 0
                     updated = True
+                # ──────────────────────────────────────────────────────────────
 
-                # Update the checkbox variables
-                vars["seen"].set(data.get("seen", 0))
-                vars["caught"].set(data.get("caught", 0))
-                vars["gm"].set(data.get("gm", 0))
-                vars["shiny"].set(data.get("shiny", 0))
-                # Enforce rules after loading values
-                if vars["caught"].get() == 1:
-                    vars["seen"].set(1)
+                entry.seen_var.set(data.get("seen", 0))
+                entry.caught_var.set(data.get("caught", 0))
+                entry.gm_var.set(data.get("gm", 0))
+                entry.shiny_var.set(data.get("shiny", 0))
 
-                if vars["gm"].get() == 1 or vars["shiny"].get() == 1:
-                    vars["seen"].set(1)
-                    vars["caught"].set(1)
+                # Enforce rules after loading (same as old code)
+                if entry.caught_var.get() == 1:
+                    entry.seen_var.set(1)
+                if entry.gm_var.get() == 1 or entry.shiny_var.get() == 1:
+                    entry.seen_var.set(1)
+                    entry.caught_var.set(1)
 
-                update_seen_caught_lock(cid)
+        # Re-apply rules + refresh everything
+        for entry in creo_entries.values():
+            enforce_rules(entry.cid)
+        update_stats_labels()
+        apply_filter()
 
-                if stats_window and stats_window.winfo_exists():
-                    update_stats_labels()
+        messagebox.showinfo("Loaded", f"Loaded from:\n{path}")
 
-                # Save the updated values back to saved dict
-                saved[cid] = data
-
-            # If any keys were added, overwrite the file so checklist supports them
-            if updated:
-                with open(load_path, "w") as f:
+        # If we added missing keys, overwrite the file (same as old behavior)
+        if updated:
+            try:
+                with open(path, "w", encoding="utf-8") as f:
                     json.dump(saved, f, indent=2)
+            except Exception as e:
+                # silent fail is fine
+                print("Could not upgrade old save file:", e)
 
-            messagebox.showinfo("Checklist Loaded",
-                                f"Loaded {len(saved)} Creo(s) successfully!")
-        except Exception as e:
-            messagebox.showerror("Error Loading Checklist", str(e))
-    else:
-        messagebox.showwarning(
-            "No File Selected", "No file was selected to load.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Load failed:\n{e}")
+
+
+def clear_checklist():
+    """Reset all checkboxes"""
+    if not messagebox.askyesno("Clear?", "Reset all checkboxes?"):
+        return
+    for entry in creo_entries.values():
+        entry.seen_var.set(0)
+        entry.caught_var.set(0)
+        entry.gm_var.set(0)
+        entry.shiny_var.set(0)
+        enforce_rules(entry.cid)
+    update_stats_labels()
+    apply_filter()
+    messagebox.showinfo("Cleared", "All checkboxes reset.")
 
 
 # ====== Menu ======
@@ -656,8 +598,8 @@ root.config(menu=menu_bar)
 file_menu = tk.Menu(menu_bar, tearoff=0)
 edit_menu = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="File", menu=file_menu)
-file_menu.add_command(label="Open", command=open_checklist)
-file_menu.add_command(label="Save", command=save_checklist)
+file_menu.add_command(label="Load Checklist", command=load_checklist)
+file_menu.add_command(label="Save Checklist", command=save_checklist)
 file_menu.add_separator()
 file_menu.add_command(label="Clear Checklist", command=clear_checklist)
 file_menu.add_separator()
@@ -674,5 +616,5 @@ for cid, data in creos.items():
 
 # ====== Initial Scroll Update ======
 update_scrollregion()
-
+apply_filter()
 root.mainloop()
