@@ -351,10 +351,11 @@ canvas.bind_all("<Button-5>", on_mousewheel)
 HEADER_WIDTH = {
     "GM\n(Obtained)": 8,
     "Shiny": 9,
-    "Name (Click for Wiki)": 16,
+    "Name\n(Click for Wiki)": 16,
+    "Icon\n(Click to Cycle)": 16,
 }
 # Column headers
-headers = ["ID", "Name (Click for Wiki)", "Icon",
+headers = ["ID", "Name\n(Click for Wiki)", "Icon\n(Click to Cycle)",
            "Seen", "Caught", "GM\n(Obtained)", "Shiny"]
 for col, text in enumerate(headers):
     tk.Label(scrollable_frame, text=text,
@@ -371,31 +372,27 @@ for col, text in enumerate(headers):
 def load_creo_sprite(sprite_base: str, mode: str = "normal") -> ImageTk.PhotoImage:
     suffix_map = {"normal": "_ns", "gm": "_gms", "shiny": "_ss"}
     suffix = suffix_map.get(mode, "_ns")
-    subfolder = mode   # "normal", "gm", "shiny"
+    subfolder = mode
 
-    # Look for .webp first (your actual files)
-    img_path_webp = os.path.join(
-        script_dir, "icons", subfolder, f"{sprite_base}{suffix}.webp")
-
-    # Optional: also try .png as fallback (in case you have mixed formats later)
-    img_path_png = os.path.join(
-        script_dir, "icons", subfolder, f"{sprite_base}{suffix}.png")
+    candidates = [
+        f"{sprite_base}{suffix}.webp",
+        f"{sprite_base}{suffix}.png",
+        f"{sprite_base}_{suffix.lstrip('_')}.webp",
+        f"{sprite_base}_{suffix.lstrip('_')}.png",
+    ]
 
     fallback = os.path.join(script_dir, "placeholder", "placeholder.png")
 
-    img_path = fallback
-    if os.path.exists(img_path_webp):
-        img_path = img_path_webp
-    elif os.path.exists(img_path_png):
-        img_path = img_path_png
+    for filename in candidates:
+        path = os.path.join(script_dir, "icons", subfolder, filename)
+        if os.path.exists(path):
+            try:
+                return ImageTk.PhotoImage(Image.open(path))
+            except Exception as e:
+                print(f"Failed to load {path}: {e}")
 
-    try:
-        img = Image.open(img_path)
-        return ImageTk.PhotoImage(img)
-    except Exception as e:
-        print(f"Failed to load {img_path}: {e}")
-        img = Image.open(fallback)
-        return ImageTk.PhotoImage(img)
+    return ImageTk.PhotoImage(Image.open(fallback))
+
 
 # ====== create_creo_row now computes sprite_base ======
 
@@ -404,9 +401,12 @@ def create_creo_row(creo_id: str, creo_data: dict):
     name = creo_data.get("name", "???").strip()
 
     # Clean name for filename matching (adjust if your filenames need different cleaning)
-    sprite_base = name.replace(" ", "").replace(
-        "'", "").replace("-", "").replace(":", "")
-    # Examples: "Siren Song" → "SirenSong", "Mr. Mime" → "MrMime", etc.
+    sprite_base = (
+        name.replace(" ", "_")
+        .replace("'", "")
+        .replace("-", "_")
+        .replace(":", "")
+    )
 
     seen_var = tk.IntVar(value=0)
     caught_var = tk.IntVar(value=0)
