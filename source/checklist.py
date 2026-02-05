@@ -6,10 +6,11 @@ from tkinter import filedialog
 import json
 import os
 from dataclasses import dataclass
+from tkinter import ttk   # for better-looking small labels if you want
 
 # ====== Window Setup ======
 root = tk.Tk()
-root.title("EvoCreo Checklist v1.2.1")
+root.title("EvoCreo Checklist v1.3.0")
 root.configure(bg="lightblue")
 root.geometry("600x600")
 root.minsize(600, 600)
@@ -21,23 +22,25 @@ root.minsize(600, 600)
 class CreoEntry:
     cid: str
     name: str
-    icon_photo: ImageTk.PhotoImage   # keeps the image alive
+    sprite_base: str
     # The four checkboxes' states (0 or 1)
     seen_var:   tk.IntVar
     caught_var: tk.IntVar
     gm_var:     tk.IntVar
     shiny_var:  tk.IntVar
-    # The actual checkbox widgets (so we can disable/enable them)
-    cb_seen:   tk.Checkbutton
-    cb_caught: tk.Checkbutton
-    cb_gm:     tk.Checkbutton
-    cb_shiny:  tk.Checkbutton
+    cb_seen:    tk.Checkbutton
+    cb_caught:  tk.Checkbutton
+    cb_gm:      tk.Checkbutton
+    cb_shiny:   tk.Checkbutton
     # All widgets in this row (for hiding/showing during filter)
     all_widgets: list[tk.Widget]
 
+    icon_photo: ImageTk.PhotoImage
+    sprite_mode: str = "normal"
+    icon_label: tk.Label = None
+
 
 # ====== Global Variables ======
-# main storage: cid → CreoEntry object
 creo_entries: dict[str, CreoEntry] = {}
 images = {}
 toggle_seen = True
@@ -155,15 +158,9 @@ def toggle_all_category(category: str):
         enforce_rules(entry.cid)
     if changed:
         update_stats_labels()
-    # Flip for next time
-    toggle_var = not toggle_var
-    globals()[toggle_var_name] = toggle_var
-    # Button text for NEXT action
-    next_is_check = toggle_var
-    if next_is_check:
-        button_text = f"Check All {category.title()}"
-    else:
-        button_text = f"Uncheck All {category.title()}"
+    globals()[toggle_var_name] = not toggle_var
+    next_is_check = globals()[toggle_var_name]
+    button_text = f"{'Check' if next_is_check else 'Uncheck'} All {category.title()}"
     button.config(text=button_text)
 
 
@@ -181,11 +178,8 @@ def apply_filter(*args):
         "ungm":     show_ungm_var.get() == 1,
         "unshiny":  show_unshiny_var.get() == 1,
     }
-    visible_count = 0
     for entry in creo_entries.values():
-        # Start with assume show
         show = True
-        # Name or ID search
         if query:
             name_match = query in entry.name.lower()
             try:
@@ -194,7 +188,6 @@ def apply_filter(*args):
                 id_match = False
             if not (name_match or id_match):
                 show = False
-        # Status filters (positive)
         if filters["seen"] and entry.seen_var.get() != 1:
             show = False
         if filters["caught"] and entry.caught_var.get() != 1:
@@ -203,7 +196,6 @@ def apply_filter(*args):
             show = False
         if filters["shiny"] and entry.shiny_var.get() != 1:
             show = False
-        # Negative filters ("Not X")
         if filters["unseen"] and entry.seen_var.get() == 1:
             show = False
         if filters["uncaught"] and entry.caught_var.get() == 1:
@@ -212,18 +204,9 @@ def apply_filter(*args):
             show = False
         if filters["unshiny"] and entry.shiny_var.get() == 1:
             show = False
-        # Apply visibility
         for widget in entry.all_widgets:
-            if show:
-                widget.grid()
-            else:
-                widget.grid_remove()
-        if show:
-            visible_count += 1
-    # Update scroll area
+            widget.grid() if show else widget.grid_remove()
     update_scrollregion()
-    # Optional: update stats only for visible? For now, keep total as all
-    # (you can change later if you want visible-only stats)
     update_stats_labels()
 
 
@@ -382,23 +365,62 @@ for col, text in enumerate(headers):
              justify="center"
              ).grid(row=0, column=col, padx=4, pady=2)
 
-# ====== Create Rows ======
+# ====== Sprite loader uses sprite_base ======
+
+
+def load_creo_sprite(sprite_base: str, mode: str = "normal") -> ImageTk.PhotoImage:
+    suffix_map = {"normal": "_ns", "gm": "_gms", "shiny": "_ss"}
+    suffix = suffix_map.get(mode, "_ns")
+    subfolder = mode   # "normal", "gm", "shiny"
+
+    # Look for .webp first (your actual files)
+    img_path_webp = os.path.join(
+        script_dir, "icons", subfolder, f"{sprite_base}{suffix}.webp")
+
+    # Optional: also try .png as fallback (in case you have mixed formats later)
+    img_path_png = os.path.join(
+        script_dir, "icons", subfolder, f"{sprite_base}{suffix}.png")
+
+    fallback = os.path.join(script_dir, "placeholder", "placeholder.png")
+
+    img_path = fallback
+    if os.path.exists(img_path_webp):
+        img_path = img_path_webp
+    elif os.path.exists(img_path_png):
+        img_path = img_path_png
+
+    try:
+        img = Image.open(img_path)
+        return ImageTk.PhotoImage(img)
+    except Exception as e:
+        print(f"Failed to load {img_path}: {e}")
+        img = Image.open(fallback)
+        return ImageTk.PhotoImage(img)
+
+# ====== create_creo_row now computes sprite_base ======
 
 
 def create_creo_row(creo_id: str, creo_data: dict):
     name = creo_data.get("name", "???").strip()
-    # Create the state variables (0 or 1)
+
+    # Clean name for filename matching (adjust if your filenames need different cleaning)
+    sprite_base = name.replace(" ", "").replace(
+        "'", "").replace("-", "").replace(":", "")
+    # Examples: "Siren Song" → "SirenSong", "Mr. Mime" → "MrMime", etc.
+
     seen_var = tk.IntVar(value=0)
     caught_var = tk.IntVar(value=0)
     gm_var = tk.IntVar(value=0)
     shiny_var = tk.IntVar(value=0)
-    # We'll collect all widgets here so we can hide/show the whole row later
+
     widgets = []
-    row_num = len(creo_entries) + 1   # row 1, 2, 3... for grid
+    row_num = len(creo_entries) + 1
+
     # Column 0 - ID
     w = tk.Label(scrollable_frame, text=creo_id, width=4, bg="lightblue")
     w.grid(row=row_num, column=0, padx=2)
     widgets.append(w)
+
     # Column 1 - Name (clickable to wiki)
     w = tk.Label(scrollable_frame, text=name,
                  fg="blue", bg="lightblue", anchor="w")
@@ -406,67 +428,114 @@ def create_creo_row(creo_id: str, creo_data: dict):
     w.bind("<Button-1>", lambda e, n=name: webbrowser.open_new(
         f"https://evocreo.fandom.com/wiki/{n.replace(' ', '_')}"))
     widgets.append(w)
-    # Column 2 - Icon
-    img_path = os.path.join(script_dir, creo_data.get("icon", ""))
-    if not os.path.exists(img_path):
-        img_path = os.path.join(script_dir, "placeholder", "placeholder.png")
-    try:
-        img = Image.open(img_path)
-    except Exception:
-        img = Image.open(os.path.join(
-            script_dir, "placeholder", "placeholder.png"))
-    photo = ImageTk.PhotoImage(img)
-    images[creo_id] = photo   # keep reference so image doesn't disappear
-    w = tk.Label(scrollable_frame, image=photo, bg="lightblue")
-    w.grid(row=row_num, column=2, padx=2)
-    widgets.append(w)
-    # ── Checkboxes ──────────────────────────────────────────────
-    # Helper that every checkbox will call
+    # Column 2 - Icon + mode indicator
+    photo = load_creo_sprite(sprite_base, "normal")
 
+    # Create a container frame for icon + badge
+    icon_container = tk.Frame(scrollable_frame, bg="lightblue")
+    icon_container.grid(row=row_num, column=2, padx=2)
+
+    icon_label = tk.Label(icon_container, image=photo, bg="lightblue")
+    icon_label.pack()
+
+    # Small mode indicator label (bottom-right corner)
+    mode_label = tk.Label(
+        icon_container,
+        text="N",               # will be updated later
+        font=("Segoe UI", 7, "bold"),
+        fg="#444444",
+        bg="#ffffff",         # very light semi-transparent gray
+        bd=1, relief="solid",
+        padx=2, pady=0
+    )
+    mode_label.place(relx=1.0, rely=1.0, anchor="se")   # bottom-right
+
+    # ← important: add container, not just label
+    widgets.append(icon_container)
+    # (so filtering hides the whole thing)
+
+    def update_mode_label(mode):
+        if mode == "normal":
+            txt = "N"
+            fg = "#444444"          # dark gray
+            bg = "#e8e8e8"        # very light gray, ~50% opacity
+
+        elif mode == "gm":
+            txt = "GM"
+            fg = "#0066cc"          # strong blue (shiny vibe)
+            bg = "#e6f0ff"        # very pale blue, ~80% opacity
+        elif mode == "shiny":
+            txt = "S"
+            fg = "#d4a017"          # gold / golden yellow
+            bg = "#fffacd"        # very pale lemon/champagne, ~80% opacity
+
+        mode_label.config(text=txt, fg=fg, bg=bg)
+
+    # Initial update
+    update_mode_label("normal")
+
+    def cycle_sprite(event=None):
+        entry = creo_entries[creo_id]
+        modes = ["normal", "gm", "shiny"]
+        current_idx = modes.index(entry.sprite_mode)
+        next_mode = modes[(current_idx + 1) % 3]
+        entry.sprite_mode = next_mode
+        new_photo = load_creo_sprite(entry.sprite_base, next_mode)
+        entry.icon_photo = new_photo
+        images[creo_id] = new_photo
+        icon_label.config(image=new_photo)
+        update_mode_label(next_mode)           # ← update badge
+
+    icon_label.bind("<Button-1>", cycle_sprite)
+    mode_label.bind("<Button-1>", cycle_sprite)
+
+    # Checkboxes
     def on_change():
-        enforce_rules(creo_id)         # we'll define this function next
+        enforce_rules(creo_id)
         update_stats_labels()
-    # Seen checkbox
-    cb_seen = tk.Checkbutton(scrollable_frame, variable=seen_var, bg="lightblue",
-                             command=on_change)
+
+    cb_seen = tk.Checkbutton(
+        scrollable_frame, variable=seen_var, bg="lightblue", command=on_change)
     cb_seen.grid(row=row_num, column=3)
     widgets.append(cb_seen)
-    # Caught checkbox
 
     def on_caught():
         if caught_var.get() == 1:
             seen_var.set(1)
         on_change()
-    cb_caught = tk.Checkbutton(scrollable_frame, variable=caught_var, bg="lightblue",
-                               command=on_caught)
+
+    cb_caught = tk.Checkbutton(
+        scrollable_frame, variable=caught_var, bg="lightblue", command=on_caught)
     cb_caught.grid(row=row_num, column=4)
     widgets.append(cb_caught)
-    # GM checkbox
 
     def on_gm():
         if gm_var.get() == 1:
             seen_var.set(1)
             caught_var.set(1)
         on_change()
-    cb_gm = tk.Checkbutton(scrollable_frame, variable=gm_var, bg="lightblue",
-                           command=on_gm)
+
+    cb_gm = tk.Checkbutton(scrollable_frame, variable=gm_var,
+                           bg="lightblue", command=on_gm)
     cb_gm.grid(row=row_num, column=5)
     widgets.append(cb_gm)
-    # Shiny checkbox
 
     def on_shiny():
         if shiny_var.get() == 1:
             seen_var.set(1)
         on_change()
-    cb_shiny = tk.Checkbutton(scrollable_frame, variable=shiny_var, bg="lightblue",
-                              command=on_shiny)
+
+    cb_shiny = tk.Checkbutton(
+        scrollable_frame, variable=shiny_var, bg="lightblue", command=on_shiny)
     cb_shiny.grid(row=row_num, column=6)
     widgets.append(cb_shiny)
-    # ── Create the object that holds EVERYTHING for this Creo ──
+
     entry = CreoEntry(
         cid=creo_id,
         name=name,
+        sprite_base=sprite_base,
         icon_photo=photo,
+        sprite_mode="normal",
         seen_var=seen_var,
         caught_var=caught_var,
         gm_var=gm_var,
@@ -475,10 +544,10 @@ def create_creo_row(creo_id: str, creo_data: dict):
         cb_caught=cb_caught,
         cb_gm=cb_gm,
         cb_shiny=cb_shiny,
-        all_widgets=widgets
+        all_widgets=widgets,
+        icon_label=icon_label
     )
     creo_entries[creo_id] = entry
-    # Apply rules right away (important!)
     enforce_rules(creo_id)
 
 # ====== Save / Load and Clear ======
