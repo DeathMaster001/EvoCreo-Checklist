@@ -2,694 +2,522 @@
     "metadata": {
         "accurate_as_of": "2026-01-19",
         "source": "In-game data from EvoCreo 1",
-        "notes": "Creo icons are placeholders if missing from icons folder"
+        "notes": "Sprites are resolved dynamically from the icons folder based on Creo name"
     },
     "1": {
-        "name": "Fyroey",
-        "icon": "icons/Fyroey_ns.webp"
+        "name": "Fyroey"
     },
     "2": {
-        "name": "Fyraby",
-        "icon": "icons/Fyraby_ns.webp"
+        "name": "Fyraby"
     },
     "3": {
-        "name": "Fyru",
-        "icon": "icons/Fyru_ns.webp"
+        "name": "Fyru"
     },
     "4": {
-        "name": "Monkopod",
-        "icon": "icons/Monkopod_ns.webp"
+        "name": "Monkopod"
     },
     "5": {
-        "name": "Kentropod",
-        "icon": "icons/Kentropod_ns.webp"
+        "name": "Kentropod"
     },
     "6": {
-        "name": "Stegopod",
-        "icon": "icons/Stegopod_ns.webp"
+        "name": "Stegopod"
     },
     "7": {
-        "name": "Skalanka",
-        "icon": "icons/Skalanka_ns.webp"
+        "name": "Skalanka"
     },
     "8": {
-        "name": "Skalunne",
-        "icon": "icons/Skalunne_ns.webp"
+        "name": "Skalunne"
     },
     "9": {
-        "name": "Skalorn",
-        "icon": "icons/Skalorn_ns.webp"
+        "name": "Skalorn"
     },
     "10": {
-        "name": "Deor",
-        "icon": "icons/Deor_ns.webp"
+        "name": "Deor"
     },
     "11": {
-        "name": "Alcerra",
-        "icon": "icons/Alcerra_ns.webp"
+        "name": "Alcerra"
     },
     "12": {
-        "name": "Cervucean",
-        "icon": "icons/Cervucean_ns.webp"
+        "name": "Cervucean"
     },
     "13": {
-        "name": "Rangifair",
-        "icon": "icons/Rangifair_ns.webp"
+        "name": "Rangifair"
     },
     "14": {
-        "name": "Rusarth",
-        "icon": "icons/Rusarth_ns.webp"
+        "name": "Rusarth"
     },
     "15": {
-        "name": "Detron",
-        "icon": "icons/Detron_ns.webp"
+        "name": "Detron"
     },
     "16": {
-        "name": "Cervantes",
-        "icon": "icons/Cervantes_ns.webp"
+        "name": "Cervantes"
     },
     "17": {
-        "name": "Cerminous",
-        "icon": "icons/Cerminous_ns.webp"
+        "name": "Cerminous"
     },
     "18": {
-        "name": "Nulifer",
-        "icon": "icons/Nulifer_ns.webp"
+        "name": "Nulifer"
     },
     "19": {
-        "name": "Elacat",
-        "icon": "icons/Elacat_ns.webp"
+        "name": "Elacat"
     },
     "20": {
-        "name": "Elatrike",
-        "icon": "icons/Elatrike_ns.webp"
+        "name": "Elatrike"
     },
     "21": {
-        "name": "Truegato",
-        "icon": "icons/Truegato_ns.webp"
+        "name": "Truegato"
     },
     "22": {
-        "name": "Squirian",
-        "icon": "icons/Squirian_ns.webp"
+        "name": "Squirian"
     },
     "23": {
-        "name": "Armight",
-        "icon": "icons/Armight_ns.webp"
+        "name": "Armight"
     },
     "24": {
-        "name": "Soleat",
-        "icon": "icons/Soleat_ns.webp"
+        "name": "Soleat"
     },
     "25": {
-        "name": "Solate",
-        "icon": "icons/Solate_ns.webp"
+        "name": "Solate"
     },
     "26": {
-        "name": "Cloufi",
-        "icon": "icons/Cloufi_ns.webp"
+        "name": "Cloufi"
     },
     "27": {
-        "name": "Singlish",
-        "icon": "icons/Singlish_ns.webp"
+        "name": "Singlish"
     },
     "28": {
-        "name": "Shoalish",
-        "icon": "icons/Shoalish_ns.webp"
+        "name": "Shoalish"
     },
     "29": {
-        "name": "Schoolish",
-        "icon": "icons/Schoolish_ns.webp"
+        "name": "Schoolish"
     },
     "30": {
-        "name": "Seadrake",
-        "icon": "icons/Seadrake_ns.webp"
+        "name": "Seadrake"
     },
     "31": {
-        "name": "Leafdra",
-        "icon": "icons/Leafdra_ns.webp"
+        "name": "Leafdra"
     },
     "32": {
-        "name": "Ongadra",
-        "icon": "icons/Ongadra_ns.webp"
+        "name": "Ongadra"
     },
     "33": {
-        "name": "Blixdra",
-        "icon": "icons/Blixdra_ns.webp"
+        "name": "Blixdra"
     },
     "34": {
-        "name": "Orkandra",
-        "icon": "icons/Orkandra_ns.webp"
+        "name": "Orkandra"
     },
     "35": {
-        "name": "Mudra",
-        "icon": "icons/Mudra_ns.webp"
+        "name": "Mudra"
     },
     "36": {
-        "name": "Luftdra",
-        "icon": "icons/Luftdra_ns.webp"
+        "name": "Luftdra"
     },
     "37": {
-        "name": "Lumdra",
-        "icon": "icons/Lumdra_ns.webp"
+        "name": "Lumdra"
     },
     "38": {
-        "name": "Nuldra",
-        "icon": "icons/Nuldra_ns.webp"
+        "name": "Nuldra"
     },
     "39": {
-        "name": "Rebas",
-        "icon": "icons/Rebas_ns.webp"
+        "name": "Rebas"
     },
     "40": {
-        "name": "Volcadon",
-        "icon": "icons/Volcadon_ns.webp"
+        "name": "Volcadon"
     },
     "41": {
-        "name": "Regodon",
-        "icon": "icons/Regodon_ns.webp"
+        "name": "Regodon"
     },
     "42": {
-        "name": "Glaciadon",
-        "icon": "icons/Glaciadon_ns.webp"
+        "name": "Glaciadon"
     },
     "43": {
-        "name": "Willodon",
-        "icon": "icons/Willodon_ns.webp"
+        "name": "Willodon"
     },
     "44": {
-        "name": "Rebtrix",
-        "icon": "icons/Rebtrix_ns.webp"
+        "name": "Rebtrix"
     },
     "45": {
-        "name": "Aerodon",
-        "icon": "icons/Aerodon_ns.webp"
+        "name": "Aerodon"
     },
     "46": {
-        "name": "Soldon",
-        "icon": "icons/Soldon_ns.webp"
+        "name": "Soldon"
     },
     "47": {
-        "name": "Nuldon",
-        "icon": "icons/Nuldon_ns.webp"
+        "name": "Nuldon"
     },
     "48": {
-        "name": "Balloo",
-        "icon": "icons/Balloo_ns.webp"
+        "name": "Balloo"
     },
     "49": {
-        "name": "Rolo",
-        "icon": "icons/Rolo_ns.webp"
+        "name": "Rolo"
     },
     "50": {
-        "name": "Motcee",
-        "icon": "icons/Motcee_ns.webp"
+        "name": "Motcee"
     },
     "51": {
-        "name": "Naja",
-        "icon": "icons/Naja_ns.webp"
+        "name": "Naja"
     },
     "52": {
-        "name": "Armaja",
-        "icon": "icons/Armaja_ns.webp"
+        "name": "Armaja"
     },
     "53": {
-        "name": "Kodock",
-        "icon": "icons/Kodock_ns.webp"
+        "name": "Kodock"
     },
     "54": {
-        "name": "Aeraja",
-        "icon": "icons/Aeraja_ns.webp"
+        "name": "Aeraja"
     },
     "55": {
-        "name": "Ignodo",
-        "icon": "icons/Ignodo_ns.webp"
+        "name": "Ignodo"
     },
     "56": {
-        "name": "Conleon",
-        "icon": "icons/Conleon_ns.webp"
+        "name": "Conleon"
     },
     "57": {
-        "name": "Hydraja",
-        "icon": "icons/Hydraja_ns.webp"
+        "name": "Hydraja"
     },
     "58": {
-        "name": "Saldo",
-        "icon": "icons/Saldo_ns.webp"
+        "name": "Saldo"
     },
     "59": {
-        "name": "Obsius",
-        "icon": "icons/Obsius_ns.webp"
+        "name": "Obsius"
     },
     "60": {
-        "name": "Fulget",
-        "icon": "icons/Fulget_ns.webp"
+        "name": "Fulget"
     },
     "61": {
-        "name": "Fulgedeus",
-        "icon": "icons/Fulgedeus_ns.webp"
+        "name": "Fulgedeus"
     },
     "62": {
-        "name": "Cheshatter",
-        "icon": "icons/Cheshatter_ns.webp"
+        "name": "Cheshatter"
     },
     "63": {
-        "name": "Madirekat",
-        "icon": "icons/Madirekat_ns.webp"
+        "name": "Madirekat"
     },
     "64": {
-        "name": "Brunk",
-        "icon": "icons/Brunk_ns.webp"
+        "name": "Brunk"
     },
     "65": {
-        "name": "Terrano",
-        "icon": "icons/Terrano_ns.webp"
+        "name": "Terrano"
     },
     "66": {
-        "name": "Seacean",
-        "icon": "icons/Seacean_ns.webp"
+        "name": "Seacean"
     },
     "67": {
-        "name": "Vulkan",
-        "icon": "icons/Vulkan_ns.webp"
+        "name": "Vulkan"
     },
     "68": {
-        "name": "Blix",
-        "icon": "icons/Blix_ns.webp"
+        "name": "Blix"
     },
     "69": {
-        "name": "Radow",
-        "icon": "icons/Radow_ns.webp"
+        "name": "Radow"
     },
     "70": {
-        "name": "Ferredow",
-        "icon": "icons/Ferredow_ns.webp"
+        "name": "Ferredow"
     },
     "71": {
-        "name": "Ravian",
-        "icon": "icons/Ravian_ns.webp"
+        "name": "Ravian"
     },
     "72": {
-        "name": "Illuvian",
-        "icon": "icons/Illuvian_ns.webp"
+        "name": "Illuvian"
     },
     "73": {
-        "name": "Armonia",
-        "icon": "icons/Armonia_ns.webp"
+        "name": "Armonia"
     },
     "74": {
-        "name": "Shadiair",
-        "icon": "icons/Shadiair_ns.webp"
+        "name": "Shadiair"
     },
     "75": {
-        "name": "Shadigon",
-        "icon": "icons/Shadigon_ns.webp"
+        "name": "Shadigon"
     },
     "76": {
-        "name": "Lumineam",
-        "icon": "icons/Lumineam_ns.webp"
+        "name": "Lumineam"
     },
     "77": {
-        "name": "Lumigon",
-        "icon": "icons/Lumigon_ns.webp"
+        "name": "Lumigon"
     },
     "78": {
-        "name": "Polycryst",
-        "icon": "icons/Polycryst_ns.webp"
+        "name": "Polycryst"
     },
     "79": {
-        "name": "Skarn",
-        "icon": "icons/Skarn_ns.webp"
+        "name": "Skarn"
     },
     "80": {
-        "name": "Ignisakhra",
-        "icon": "icons/Ignisakhra_ns.webp"
+        "name": "Ignisakhra"
     },
     "81": {
-        "name": "Aquasten",
-        "icon": "icons/Aquasten_ns.webp"
+        "name": "Aquasten"
     },
     "82": {
-        "name": "Naviterra",
-        "icon": "icons/Naviterra_ns.webp"
+        "name": "Naviterra"
     },
     "83": {
-        "name": "Acerth",
-        "icon": "icons/Acerth_ns.webp"
+        "name": "Acerth"
     },
     "84": {
-        "name": "Musgord",
-        "icon": "icons/Musgord_ns.webp"
+        "name": "Musgord"
     },
     "85": {
-        "name": "Crystsol",
-        "icon": "icons/Crystsol_ns.webp"
+        "name": "Crystsol"
     },
     "86": {
-        "name": "Amorphure",
-        "icon": "icons/Amorphure_ns.webp"
+        "name": "Amorphure"
     },
     "87": {
-        "name": "Seglar",
-        "icon": "icons/Seglar_ns.webp"
+        "name": "Seglar"
     },
     "88": {
-        "name": "Dykar",
-        "icon": "icons/Dykar_ns.webp"
+        "name": "Dykar"
     },
     "89": {
-        "name": "Valnot",
-        "icon": "icons/Valnot_ns.webp"
+        "name": "Valnot"
     },
     "90": {
-        "name": "Valroot",
-        "icon": "icons/Valroot_ns.webp"
+        "name": "Valroot"
     },
     "91": {
-        "name": "Valtree",
-        "icon": "icons/Valtree_ns.webp"
+        "name": "Valtree"
     },
     "92": {
-        "name": "Furen",
-        "icon": "icons/Furen_ns.webp"
+        "name": "Furen"
     },
     "93": {
-        "name": "Furnis",
-        "icon": "icons/Furnis_ns.webp"
+        "name": "Furnis"
     },
     "94": {
-        "name": "Furost",
-        "icon": "icons/Furost_ns.webp"
+        "name": "Furost"
     },
     "95": {
-        "name": "Brear",
-        "icon": "icons/Brear_ns.webp"
+        "name": "Brear"
     },
     "96": {
-        "name": "Vargtron",
-        "icon": "icons/Vargtron_ns.webp"
+        "name": "Vargtron"
     },
     "97": {
-        "name": "Lobonk",
-        "icon": "icons/Lobonk_ns.webp"
+        "name": "Lobonk"
     },
     "98": {
-        "name": "Shog",
-        "icon": "icons/Shog_ns.webp"
+        "name": "Shog"
     },
     "99": {
-        "name": "Lupinous",
-        "icon": "icons/Lupinous_ns.webp"
+        "name": "Lupinous"
     },
     "100": {
-        "name": "Vulpoid",
-        "icon": "icons/Vulpoid_ns.webp"
+        "name": "Vulpoid"
     },
     "101": {
-        "name": "Vulpesol",
-        "icon": "icons/Vulpesol_ns.webp"
+        "name": "Vulpesol"
     },
     "102": {
-        "name": "Brasasol",
-        "icon": "icons/Brasasol_ns.webp"
+        "name": "Brasasol"
     },
     "103": {
-        "name": "Canosol",
-        "icon": "icons/Canosol_ns.webp"
+        "name": "Canosol"
     },
     "104": {
-        "name": "Hydrosol",
-        "icon": "icons/Hydrosol_ns.webp"
+        "name": "Hydrosol"
     },
     "105": {
-        "name": "Aerosol",
-        "icon": "icons/Aerosol_ns.webp"
+        "name": "Aerosol"
     },
     "106": {
-        "name": "Tronsol",
-        "icon": "icons/Tronsol_ns.webp"
+        "name": "Tronsol"
     },
     "107": {
-        "name": "Gulosol",
-        "icon": "icons/Gulosol_ns.webp"
+        "name": "Gulosol"
     },
     "108": {
-        "name": "Nurisol",
-        "icon": "icons/Nurisol_ns.webp"
+        "name": "Nurisol"
     },
     "109": {
-        "name": "Vodisol",
-        "icon": "icons/Vodisol_ns.webp"
+        "name": "Vodisol"
     },
     "110": {
-        "name": "Arcus",
-        "icon": "icons/Arcus_ns.webp"
+        "name": "Arcus"
     },
     "111": {
-        "name": "Nocterra",
-        "icon": "icons/Nocterra_ns.webp"
+        "name": "Nocterra"
     },
     "112": {
-        "name": "Confal",
-        "icon": "icons/Confal_ns.webp"
+        "name": "Confal"
     },
     "113": {
-        "name": "Naltair",
-        "icon": "icons/Naltair_ns.webp"
+        "name": "Naltair"
     },
     "114": {
-        "name": "Jamad",
-        "icon": "icons/Jamad_ns.webp"
+        "name": "Jamad"
     },
     "115": {
-        "name": "Kahrus",
-        "icon": "icons/Kahrus_ns.webp"
+        "name": "Kahrus"
     },
     "116": {
-        "name": "Nabat",
-        "icon": "icons/Nabat_ns.webp"
+        "name": "Nabat"
     },
     "117": {
-        "name": "Noori",
-        "icon": "icons/Noori_ns.webp"
+        "name": "Noori"
     },
     "118": {
-        "name": "Swarteau",
-        "icon": "icons/Swarteau_ns.webp"
+        "name": "Swarteau"
     },
     "119": {
-        "name": "Noorouh",
-        "icon": "icons/Noorouh_ns.webp"
+        "name": "Noorouh"
     },
     "120": {
-        "name": "Arbirouh",
-        "icon": "icons/Arbirouh_ns.webp"
+        "name": "Arbirouh"
     },
     "121": {
-        "name": "Andarouh",
-        "icon": "icons/Andarouh_ns.webp"
+        "name": "Andarouh"
     },
     "122": {
-        "name": "Solrouh",
-        "icon": "icons/Solrouh_ns.webp"
+        "name": "Solrouh"
     },
     "123": {
-        "name": "Luftarouh",
-        "icon": "icons/Luftarouh_ns.webp"
+        "name": "Luftarouh"
     },
     "124": {
-        "name": "Blixrouh",
-        "icon": "icons/Blixrouh_ns.webp"
+        "name": "Blixrouh"
     },
     "125": {
-        "name": "Daurouh",
-        "icon": "icons/Daurouh_ns.webp"
+        "name": "Daurouh"
     },
     "126": {
-        "name": "Stenrouh",
-        "icon": "icons/Stenrouh_ns.webp"
+        "name": "Stenrouh"
     },
     "127": {
-        "name": "Havrouh",
-        "icon": "icons/Havrouh_ns.webp"
+        "name": "Havrouh"
     },
     "128": {
-        "name": "Gripony",
-        "icon": "icons/Gripony_ns.webp"
+        "name": "Gripony"
     },
     "129": {
-        "name": "Equaves",
-        "icon": "icons/Equaves_ns.webp"
+        "name": "Equaves"
     },
     "130": {
-        "name": "Triopus",
-        "icon": "icons/Triopus_ns.webp"
+        "name": "Triopus"
     },
     "131": {
-        "name": "Heptapus",
-        "icon": "icons/Heptapus_ns.webp"
+        "name": "Heptapus"
     },
     "132": {
-        "name": "Scarasect",
-        "icon": "icons/Scarasect_ns.webp"
+        "name": "Scarasect"
     },
     "133": {
-        "name": "Terrasect",
-        "icon": "icons/Terrasect_ns.webp"
+        "name": "Terrasect"
     },
     "134": {
-        "name": "Hemishade",
-        "icon": "icons/Hemishade_ns.webp"
+        "name": "Hemishade"
     },
     "135": {
-        "name": "Hemishield",
-        "icon": "icons/Hemishield_ns.webp"
+        "name": "Hemishield"
     },
     "136": {
-        "name": "Popono",
-        "icon": "icons/Popono_ns.webp"
+        "name": "Popono"
     },
     "137": {
-        "name": "Pepita",
-        "icon": "icons/Pepita_ns.webp"
+        "name": "Pepita"
     },
     "138": {
-        "name": "Pepon",
-        "icon": "icons/Pepon_ns.webp"
+        "name": "Pepon"
     },
     "139": {
-        "name": "Peptein",
-        "icon": "icons/Peptein_ns.webp"
+        "name": "Peptein"
     },
     "140": {
-        "name": "Hielo",
-        "icon": "icons/Hielo_ns.webp"
+        "name": "Hielo"
     },
     "141": {
-        "name": "Emperuin",
-        "icon": "icons/Emperuin_ns.webp"
+        "name": "Emperuin"
     },
     "142": {
-        "name": "Arcane V1",
-        "icon": "icons/Arcane_V1_ns.webp"
+        "name": "Arcane V1"
     },
     "143": {
-        "name": "Arcane V2",
-        "icon": "icons/Arcane_V2_ns.webp"
+        "name": "Arcane V2"
     },
     "144": {
-        "name": "Arcane V3",
-        "icon": "icons/Arcane_V3_ns.webp"
+        "name": "Arcane V3"
     },
     "145": {
-        "name": "Krabel",
-        "icon": "icons/Krabel_ns.webp"
+        "name": "Krabel"
     },
     "146": {
-        "name": "Hippokrab",
-        "icon": "icons/Hippokrab_ns.webp"
+        "name": "Hippokrab"
     },
     "147": {
-        "name": "Cherry Bomb",
-        "icon": "icons/Cherry_Bomb_ns.webp"
+        "name": "Cherry Bomb"
     },
     "148": {
-        "name": "Aerialanx",
-        "icon": "icons/Aerialanx_ns.webp"
+        "name": "Aerialanx"
     },
     "149": {
-        "name": "Mizan",
-        "icon": "icons/Mizan_ns.webp"
+        "name": "Mizan"
     },
     "150": {
-        "name": "Batilmatt",
-        "icon": "icons/Batilmatt_ns.webp"
+        "name": "Batilmatt"
     },
     "151": {
-        "name": "Batilbro",
-        "icon": "icons/Batilbro_ns.webp"
+        "name": "Batilbro"
     },
     "152": {
-        "name": "Batilstar",
-        "icon": "icons/Batilstar_ns.webp"
+        "name": "Batilstar"
     },
     "153": {
-        "name": "Mattinur",
-        "icon": "icons/Mattinur_ns.webp"
+        "name": "Mattinur"
     },
     "154": {
-        "name": "Branur",
-        "icon": "icons/Branur_ns.webp"
+        "name": "Branur"
     },
     "155": {
-        "name": "Stornur",
-        "icon": "icons/Stornur_ns.webp"
+        "name": "Stornur"
     },
     "156": {
-        "name": "Dracoad",
-        "icon": "icons/Dracoad_ns.webp"
+        "name": "Dracoad"
     },
     "157": {
-        "name": "Gravakang",
-        "icon": "icons/Gravakang_ns.webp"
+        "name": "Gravakang"
     },
     "158": {
-        "name": "Fermokang",
-        "icon": "icons/Fermokang_ns.webp"
+        "name": "Fermokang"
     },
     "159": {
-        "name": "Toxifoly",
-        "icon": "icons/Toxifoly_ns.webp"
+        "name": "Toxifoly"
     },
     "160": {
-        "name": "Tenefoly",
-        "icon": "icons/Tenefoly_ns.webp"
+        "name": "Tenefoly"
     },
     "161": {
-        "name": "Gurbur",
-        "icon": "icons/Gurbur_ns.webp"
+        "name": "Gurbur"
     },
     "162": {
-        "name": "Pugbur",
-        "icon": "icons/Pugbur_ns.webp"
+        "name": "Pugbur"
     },
     "163": {
-        "name": "Fettman",
-        "icon": "icons/Fettman_ns.webp"
+        "name": "Fettman"
     },
     "164": {
-        "name": "Sariqo",
-        "icon": "icons/Sariqo_ns.webp"
+        "name": "Sariqo"
     },
     "165": {
-        "name": "Malisha",
-        "icon": "icons/Malisha_ns.webp"
+        "name": "Malisha"
     },
     "166": {
-        "name": "Konigsha",
-        "icon": "icons/Konigsha_ns.webp"
+        "name": "Konigsha"
     },
     "167": {
-        "name": "Kralsha",
-        "icon": "icons/Kralsha_ns.webp"
+        "name": "Kralsha"
     },
     "168": {
-        "name": "Vulcano",
-        "icon": "icons/Vulcano_ns.webp"
+        "name": "Vulcano"
     },
     "169": {
-        "name": "Radcano",
-        "icon": "icons/Radcano_ns.webp"
+        "name": "Radcano"
     },
     "170": {
-        "name": "Gensim",
-        "icon": "icons/Gensim_ns.webp"
+        "name": "Gensim"
     },
     "171": {
-        "name": "Tsunani",
-        "icon": "icons/Tsunani_ns.webp"
+        "name": "Tsunani"
     },
     "172": {
-        "name": "Tsunapi",
-        "icon": "icons/Tsunapi_ns.webp"
+        "name": "Tsunapi"
     }
 }
