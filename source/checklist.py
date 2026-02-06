@@ -172,11 +172,7 @@ def apply_filter(*args):
         "seen":     show_seen_var.get() == 1,
         "caught":   show_caught_var.get() == 1,
         "gm":       show_gm_var.get() == 1,
-        "shiny":    show_shiny_var.get() == 1,
-        "unseen":   show_unseen_var.get() == 1,
-        "uncaught": show_uncaught_var.get() == 1,
-        "ungm":     show_ungm_var.get() == 1,
-        "unshiny":  show_unshiny_var.get() == 1,
+        "shiny":    show_shiny_var.get() == 1
     }
     for entry in creo_entries.values():
         show = True
@@ -195,14 +191,6 @@ def apply_filter(*args):
         if filters["gm"] and entry.gm_var.get() != 1:
             show = False
         if filters["shiny"] and entry.shiny_var.get() != 1:
-            show = False
-        if filters["unseen"] and entry.seen_var.get() == 1:
-            show = False
-        if filters["uncaught"] and entry.caught_var.get() == 1:
-            show = False
-        if filters["ungm"] and entry.gm_var.get() == 1:
-            show = False
-        if filters["unshiny"] and entry.shiny_var.get() == 1:
             show = False
         for widget in entry.all_widgets:
             widget.grid() if show else widget.grid_remove()
@@ -265,25 +253,7 @@ tk.Checkbutton(checkbox_inner_frame, text="GM", variable=show_gm_var,
                bg="lightblue", command=apply_filter).pack(side="left", padx=10)
 tk.Checkbutton(checkbox_inner_frame, text="Shiny", variable=show_shiny_var,
                bg="lightblue", command=apply_filter).pack(side="left", padx=10)
-# ===== Row 3: Filter checkboxes 2 centered =====
-checkbox_frame2 = tk.Frame(top_frame, bg="lightblue")
-checkbox_frame2.pack(fill="x", pady=2, padx=5)
-# Inner frame to hold the checkboxes, centered
-checkbox_inner_frame2 = tk.Frame(checkbox_frame2, bg="lightblue")
-checkbox_inner_frame2.pack(anchor="center")  # Centers horizontally
-show_unseen_var = tk.IntVar(value=0)
-show_uncaught_var = tk.IntVar(value=0)
-show_ungm_var = tk.IntVar(value=0)
-show_unshiny_var = tk.IntVar(value=0)
-tk.Checkbutton(checkbox_inner_frame2, text="Not Seen", variable=show_unseen_var,
-               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
-tk.Checkbutton(checkbox_inner_frame2, text="Not Caught", variable=show_uncaught_var,
-               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
-tk.Checkbutton(checkbox_inner_frame2, text="Not GM", variable=show_ungm_var,
-               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
-tk.Checkbutton(checkbox_inner_frame2, text="Not Shiny", variable=show_unshiny_var,
-               bg="lightblue", command=apply_filter).pack(side="left", padx=10)
-# ===== Row 4: Check All Seen / Check All Caught, Check All GM / Check All Shiny, centered =====
+# ===== Row 3: Check All Seen / Check All Caught, Check All GM / Check All Shiny, centered =====
 check_frame = tk.Frame(top_frame, bg="lightblue")
 check_frame.pack(fill="x", pady=2)
 # Inner frame to hold buttons, centered
@@ -302,7 +272,7 @@ btn_seen.config(command=lambda: toggle_all_category("seen"))
 btn_caught.config(command=lambda: toggle_all_category("caught"))
 btn_gm.config(command=lambda: toggle_all_category("gm"))
 btn_shiny.config(command=lambda: toggle_all_category("shiny"))
-# Row 5: Info label
+# Row 4: Info label
 info_label = tk.Label(
     top_frame,
     text="Note: Caught Creos always mark Seen.\nGM locks both Seen and Caught.\nShiny locks only Seen; Caught remains editable.",
