@@ -419,7 +419,7 @@ def create_creo_row(creo_id: str, creo_data: dict):
     icon_container = tk.Frame(scrollable_frame, bg="lightblue")
     icon_container.grid(row=row_num, column=2, padx=2)
     icon_label = tk.Label(icon_container, image=photo, bg="lightblue")
-    icon_label.pack()
+    icon_label.pack(side="left")
     mode_label = tk.Label(
         icon_container,
         text="N",
@@ -428,9 +428,11 @@ def create_creo_row(creo_id: str, creo_data: dict):
         bg="#e8e8e8",
         bd=1,
         relief="solid",
-        padx=2, pady=0
+        width=2,
+        padx=4,
+        pady=1
     )
-    mode_label.place(relx=1.0, rely=1.0, anchor="se")
+    mode_label.pack(side="left", padx=(3, 0))
     widgets.append(icon_container)
 
     def update_mode_label(mode):
