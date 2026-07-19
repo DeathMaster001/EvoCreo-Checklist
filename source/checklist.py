@@ -3,11 +3,10 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from tkinter import filedialog
-from tkinter import PhotoImage
 import json
 import os
 from dataclasses import dataclass
-from tkinter import ttk   # for better-looking small labels if you want
+from tkinter import ttk
 
 # ====== Window Setup ======
 root = tk.Tk()
@@ -15,8 +14,6 @@ root.title("EvoCreo Checklist v1.3.0")
 root.configure(bg="lightblue")
 root.geometry("700x750")
 root.minsize(700, 750)
-
-mode_var = tk.StringVar(value="")  # empty at startup
 
 # ====== Data Model ======
 
@@ -49,10 +46,6 @@ class CreoEntry:
 # ====== Global Variables ======
 creo_entries: dict[str, CreoEntry] = {}
 images = {}
-toggle_seen = True
-toggle_caught = True
-toggle_gm = True
-toggle_shiny = True
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 try:
@@ -66,10 +59,10 @@ except Exception as e:
 
 def update_stats_labels():
     """
-    Update the totals_label under info_label with current checklist stats,
-    including Seen, Caught, GM, Shiny counts and congratulatory messages.
+    Update the totals_label under info_label with current checklist stats.
     """
     total = len(creo_entries)
+
     if total == 0:
         totals_label.config(text="No Creos loaded.")
         return
@@ -79,12 +72,12 @@ def update_stats_labels():
     gm = sum(entry.gm_var.get() for entry in creo_entries.values())
     shiny = sum(entry.shiny_var.get() for entry in creo_entries.values())
 
-    # Base totals text
-    if mode_var.get() == "basic":
-        text = f"Totals | Seen: {seen}/{total} | Caught: {caught}/{total}"
-    else:  # advanced
-        text = (f"Totals | Seen: {seen}/{total} | Caught: {caught}/{total} | "
-                f"GM: {gm}/{total} | Shiny: {shiny}/{total}")
+    text = (
+            f"Totals | Seen: {seen}/{total} | "
+            f"Caught: {caught}/{total} | "
+            f"GM: {gm}/{total} | "
+            f"Shiny: {shiny}/{total}"
+    )
 
     # Congratulatory messages
     congrats_msgs = []
@@ -92,9 +85,9 @@ def update_stats_labels():
         congrats_msgs.append("🎉 Incredible! You've seen every Creo!")
     if caught == total:
         congrats_msgs.append("🏆 Amazing! You've caught all the Creos!")
-    if gm == total and mode_var.get() == "advanced":
+    if gm == total:
         congrats_msgs.append("✨ Legendary! You've GM'd all the Creos!")
-    if shiny == total and mode_var.get() == "advanced":
+    if shiny == total:
         congrats_msgs.append("🌟 Spectacular! You've caught every Shiny Creo!")
 
     if congrats_msgs:
@@ -104,122 +97,35 @@ def update_stats_labels():
 
 
 # ====== Helper Functions ======
-
-
-def choose_startup_mode_modal():
-    """Show a modal to pick Basic or Advanced checklist mode with fancy Help buttons."""
-
-    modal = tk.Toplevel(root)
-    modal.title("Select Checklist Mode")
-    modal.transient(root)
-    modal.grab_set()
-    modal.resizable(False, False)
-
-    # --- Set the icon for the modal ---
-    try:
-        modal.iconphoto(False, tk_icon)  # reuse the same tk_icon as root
-    except Exception as e:
-        print("Could not set modal icon:", e)
-
-    w, h = 400, 180
-
-    frame = tk.Frame(modal, bg="lightblue", bd=2, relief="raised")
-    frame.pack(fill="both", expand=True)
-
-    tk.Label(frame, text="Select Checklist Mode:",
-             bg="lightblue", font=("Segoe UI", 11, "bold")).pack(pady=15)
-
-    def show_help(mode):
-        if mode == "basic":
-            text = (
-                "Basic Mode:\n"
-                "- Similar to the in-game Creopedia.\n"
-                "- Tracks Seen and Caught only.\n"
-                "- Caught Creos always mark Seen.\n"
-                "- Simplified for quick use.\n\n"
-                "Can be converted to Advanced later."
-            )
-        else:
-            text = (
-                "Advanced Mode:\n"
-                "- For completionists.\n"
-                "- Tracks Seen, Caught, GM, Shiny, and Rank.\n"
-                "- GM locks both Seen and Caught.\n"
-                "- Shiny locks only Seen.\n"
-                "- Provides more stats and totals."
-            )
-        tk.messagebox.showinfo(f"{mode.title()} Mode Help", text)
-
-    def set_mode(mode):
-        mode_var.set(mode)
-        modal.destroy()
-
-    # --- Helper to create circular blue button with white '?' ---
-    def create_help_button(parent, command):
-        btn = tk.Button(parent, text="?", command=command,
-                        fg="white", bg="#007acc", font=("Segoe UI", 10, "bold"),
-                        bd=0, relief="raised", width=2, height=1)
-        btn.config(highlightthickness=0)
-        return btn
-
-    # ----- Buttons row for Basic -----
-    basic_frame = tk.Frame(frame, bg="lightblue")
-    basic_frame.pack(pady=5)
-    tk.Button(basic_frame, text="Basic", width=12,
-              command=lambda: set_mode("basic")).pack(side="left", padx=5)
-    create_help_button(basic_frame, lambda: show_help(
-        "basic")).pack(side="left", padx=5)
-
-    # ----- Buttons row for Advanced -----
-    adv_frame = tk.Frame(frame, bg="lightblue")
-    adv_frame.pack(pady=5)
-    tk.Button(adv_frame, text="Advanced", width=12,
-              command=lambda: set_mode("advanced")).pack(side="left", padx=5)
-    create_help_button(adv_frame, lambda: show_help(
-        "advanced")).pack(side="left", padx=5)
-
-    # ===== Center modal =====
-    def center_modal():
-        if modal.winfo_exists():
-            root.update_idletasks()
-            x = root.winfo_rootx() + (root.winfo_width() - w) // 2
-            y = root.winfo_rooty() + (root.winfo_height() - h) // 2
-            modal.geometry(f"{w}x{h}+{x}+{y}")
-            modal.after(50, center_modal)
-
-    root.update_idletasks()
-    center_modal()
-    modal.attributes("-topmost", True)
-    modal.after(0, lambda: modal.attributes("-topmost", False))
-    root.wait_window(modal)
-
-
 def enforce_rules(cid: str):
-    """Central place for auto-check + lock logic"""
+    """Central place for auto-check + lock logic."""
     entry = creo_entries[cid]
 
-    # ----- BASIC MODE -----
-    if mode_var.get() == "basic":
-        if entry.caught_var.get():
-            entry.seen_var.set(1)
-            entry.cb_seen.config(state="disabled")
-        else:
-            entry.cb_seen.config(state="normal")
-
-        entry.cb_caught.config(state="normal")
-        return
-
-    # ----- ADVANCED MODE -----
+    # Caught, GM, or Shiny always means Seen
     if entry.caught_var.get() or entry.gm_var.get() or entry.shiny_var.get():
         entry.seen_var.set(1)
+
+    # GM always means Caught
     if entry.gm_var.get():
         entry.caught_var.set(1)
 
-    disable_seen = entry.gm_var.get() or entry.caught_var.get() or entry.shiny_var.get()
+    # GM locks Caught
     disable_caught = entry.gm_var.get()
 
-    entry.cb_seen.config(state="disabled" if disable_seen else "normal")
-    entry.cb_caught.config(state="disabled" if disable_caught else "normal")
+    # GM, Caught, or Shiny locks Seen
+    disable_seen = (
+        entry.gm_var.get()
+        or entry.caught_var.get()
+        or entry.shiny_var.get()
+    )
+
+    entry.cb_seen.config(
+        state="disabled" if disable_seen else "normal"
+    )
+
+    entry.cb_caught.config(
+        state="disabled" if disable_caught else "normal"
+    )
 
 
 def toggle_all_category(category: str):
@@ -260,11 +166,6 @@ def toggle_all_category(category: str):
 def apply_filter(*args):
     """Hide/show rows based on search text and the 4 filter checkboxes"""
 
-    # --- Force-disable GM/Shiny filters in Basic mode ---
-    if mode_var.get() == "basic":
-        show_gm_var.set(0)
-        show_shiny_var.set(0)
-
     query = filter_var.get().lower().strip()
 
     # Get all filter states (True = show only matching)
@@ -296,10 +197,6 @@ def apply_filter(*args):
             if not show:
                 widget.grid_remove()
                 continue
-
-            # Respect Basic / Advanced mode
-            if mode_var.get() == "basic" and widget in entry.advanced_widgets:
-                widget.grid_remove()
             else:
                 widget.grid()
 
@@ -333,6 +230,7 @@ def on_mousewheel(event):
 # ====== Top Frame with Filter & Checkboxes ======
 top_frame = tk.Frame(root, bg="lightblue")
 top_frame.pack(fill="x", padx=5, pady=5)
+
 # Row 1: Filter
 filter_frame = tk.Frame(top_frame, bg="lightblue")
 filter_frame.pack(fill="x", pady=2)
@@ -363,7 +261,7 @@ cb_filter_shiny = tk.Checkbutton(filter_inner, text="Shiny", variable=show_shiny
 cb_filter_shiny.pack(side="left", padx=10)
 
 
-# ===== Row 3: Check All Seen / Check All Caught, Check All GM / Check All Shiny, centered =====
+# ===== Row 2: Check All Seen / Check All Caught, Check All GM / Check All Shiny, centered =====
 check_frame = tk.Frame(top_frame, bg="lightblue")
 check_frame.pack(fill="x", pady=2)
 # Inner frame to hold buttons, centered
@@ -382,18 +280,18 @@ btn_seen.config(command=lambda: toggle_all_category("seen"))
 btn_caught.config(command=lambda: toggle_all_category("caught"))
 btn_gm.config(command=lambda: toggle_all_category("gm"))
 btn_shiny.config(command=lambda: toggle_all_category("shiny"))
-# Row 4: Info label
+# Row 3: Info label
 info_label = tk.Label(
     top_frame,
-    text="",
+    text="Note: Caught Creos always mark Seen.\nGM locks both Seen and Caught.\nShiny locks only Seen; Caught remains editable.\nRank is being worked on.",
     bg="lightblue",
     fg="darkblue")
 info_label.pack(fill="x", pady=2, padx=5)
-# ===== Extra totals label =====
+# Row 4: Totals label
 totals_label = tk.Label(top_frame, text="", bg="lightblue",
                         fg="darkgreen", font=("Segoe UI", 9))
 totals_label.pack(fill="x", pady=2, padx=5)
-# ====== Metadata Label ======
+# Row 5: Metadata Label
 tk.Label(root, text="Accurate as of Jan 19, 2026 | Source: In-game",
          bg="lightblue").pack(side="bottom", pady=5)
 
@@ -629,14 +527,12 @@ def create_creo_row(creo_id: str, creo_data: dict):
         all_widgets=widgets,
         icon_label=icon_label
     )
-    entry.advanced_widgets = {entry.cb_gm, entry.cb_shiny, entry.sb_rank}
 
     entry.rank_var = rank_var  # save rank variable
     creo_entries[creo_id] = entry
 
-    # Enforce rules and apply Basic/Advanced mode
+    # Enforce rules
     enforce_rules(creo_id)
-    apply_mode_to_entry(entry, mode_var.get())
 
 # ====== Save / Load and Clear ======
 
@@ -719,9 +615,6 @@ def load_checklist():
         apply_filter()
         update_scrollregion()
 
-        # Re-apply current mode to ensure correct visibility
-        toggle_mode()
-
         messagebox.showinfo("Loaded", f"Loaded from:\n{path}")
 
         # Upgrade old save files if needed
@@ -752,87 +645,6 @@ def clear_checklist():
     messagebox.showinfo("Cleared", "Everything has been reset.")
 
 
-def toggle_mode():
-    """Switch between Basic and Advanced mode for all entries."""
-    mode = mode_var.get()
-
-    # ---- Filter checkboxes ----
-    if mode == "basic":
-        cb_filter_gm.pack_forget()
-        cb_filter_shiny.pack_forget()
-        show_gm_var.set(0)
-        show_shiny_var.set(0)
-    else:
-        cb_filter_gm.pack(side="left", padx=10)
-        cb_filter_shiny.pack(side="left", padx=10)
-
-    # ---- Check-all buttons ----
-    if mode == "basic":
-        btn_gm.pack_forget()
-        btn_shiny.pack_forget()
-    else:
-        btn_gm.pack(side="left", padx=10)
-        btn_shiny.pack(side="left", padx=10)
-
-    # Apply to every Creo row
-    for entry in creo_entries.values():
-        apply_mode_to_entry(entry, mode)
-
-    # Enable/disable GM/Shiny buttons
-    btn_gm.config(state="normal" if mode == "advanced" else "disabled")
-    btn_shiny.config(state="normal" if mode == "advanced" else "disabled")
-
-    # Update headers to match mode
-    update_headers()
-
-    # Update scroll region
-    update_scrollregion()
-
-    # ===== Update info_label text depending on mode =====
-    if mode == "basic":
-        info_label.config(
-            text="Basic Mode: Similar to the Creopedia found in-game.\n"
-                 "Seen and Caught are visible.\n"
-                 "Caught Creos always mark Seen.")
-    else:
-        info_label.config(
-            text="Advanced Mode: Has more features for completionists.\n"
-                 "GM and Shiny columns visible.\n"
-                 "GM locks both Seen and Caught.\n"
-                 "Shiny locks only Seen; Caught remains editable.\n"
-                 "Rank is being worked on.")
-
-
-def update_headers():
-    mode = mode_var.get()
-    hide_in_basic = {"GM\n(Obtained)", "Shiny", "Rank"}
-    for text, widget in header_widgets.items():
-        if text in hide_in_basic:
-            if mode == "basic":
-                widget.grid_remove()
-            else:
-                # restore exact original grid info
-                widget.grid(**widget._grid_info)
-
-# ===== Helper: Show/hide GM, Shiny, Rank widgets per entry =====
-
-
-def apply_mode_to_entry(entry: CreoEntry, mode: str):
-    """Show or hide GM, Shiny, Rank, and enforce lock rules for Basic/Advanced mode."""
-    if mode == "basic":
-        # Hide all advanced widgets
-        for w in entry.advanced_widgets:
-            w.grid_remove()
-    else:  # advanced
-        # Show all advanced widgets
-        for w in entry.advanced_widgets:
-            if hasattr(w, "_grid_info") and w._grid_info:
-                w.grid(**w._grid_info)
-
-        # Re-enforce lock rules for advanced mode
-        enforce_rules(entry.cid)
-
-
 def update_toggle_button_text(category: str):
     var_attr = f"{category}_var"
     button_attr = f"btn_{category}"
@@ -855,48 +667,19 @@ def update_toggle_button_text(category: str):
         text=f"{'Uncheck' if all_checked else 'Check'} All {category.title()}")
 
 
-# Only show Advanced conversion if user started in Basic
-def convert_to_advanced():
-    if mode_var.get() == "advanced":
-        messagebox.showinfo("Already Advanced",
-                            "Your checklist is already Advanced.")
-        return
-    if messagebox.askyesno(
-        "Convert to Advanced?",
-        "Convert this Basic checklist to Advanced?\n\n"
-        "This will unlock GM, Shiny, and Rank tracking.\n\n"
-            "While you can technically switch back to Basic, advanced data will remain hidden."):
-
-        mode_var.set("advanced")
-        toggle_mode()
-
-        # ✅ Update all toggle buttons and totals immediately
-        for cat in ["seen", "caught", "gm", "shiny"]:
-            update_toggle_button_text(cat)
-        update_stats_labels()
-
-        messagebox.showinfo(
-            "Converted", "Your checklist is now Advanced!")
-
-
 # ====== Menu ======
 menu_bar = tk.Menu(root)
 root.config(menu=menu_bar)
+
 file_menu = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="File", menu=file_menu)
+
 file_menu.add_command(label="Load Checklist", command=load_checklist)
 file_menu.add_command(label="Save Checklist", command=save_checklist)
 file_menu.add_separator()
 file_menu.add_command(label="Clear Checklist", command=clear_checklist)
 file_menu.add_separator()
 file_menu.add_command(label="Exit", command=root.quit)
-view_menu = tk.Menu(menu_bar, tearoff=0)
-menu_bar.add_cascade(label="View", menu=view_menu)
-view_menu.add_command(label="Convert to Advanced Checklist",
-                      command=convert_to_advanced)
-
-choose_startup_mode_modal()  # User picks mode first
-toggle_mode()                # Apply the selected mode
 
 # ====== Load Creos ======
 creos = load_creos(os.path.join(script_dir, "creos1.json"))
